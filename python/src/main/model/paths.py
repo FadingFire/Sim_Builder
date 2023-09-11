@@ -1,5 +1,5 @@
-def index_page_path():
-    return "/pages/index.html"
+def post_response_page():
+    return "/pages/postRespose.html"
 
 def command_input_page():
     return "/pages/commandInputPage.html"
