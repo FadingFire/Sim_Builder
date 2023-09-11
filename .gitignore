@@ -1,0 +1,10 @@
+# Basic text editors
+.idea/
+.vsc/
+.fleet/
+
+# My stupid mac copy files
+._*
+
+# All basic env files en custom setups like keys
+.env/
