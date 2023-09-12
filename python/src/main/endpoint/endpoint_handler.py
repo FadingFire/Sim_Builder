@@ -1,14 +1,13 @@
-from endpoint.post_endpoints.command_line import HandleCommand
+from post_endpoints.command_line import handle_command
 
-from endpoint.get_endpoints.command_input import CommandInputPage
+from get_endpoints.command_input import CommandInputPage
 
-from endpoint.error_endpoints.page_not_found import HandlePageNotFound
+from error_endpoints.page_not_found import HandlePageNotFound
 
-
-def SendToCorrectEndpointsGet(self):
+def send_to_correct_endpoints(self):
     match self.path:
         case '/commandline':
-            HandleCommand(self)
+            handle_command(self)
         case '/':
             CommandInputPage(self)
         case _:
