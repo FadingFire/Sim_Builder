@@ -1,5 +1,6 @@
 from http.server import SimpleHTTPRequestHandler
-from python.src.main.model.paths import post_response_page_path
+from python.src.main.model.paths import get_page_path
+
 
 def handle_command(self):
     """the main order of when what function happens"""
@@ -7,7 +8,7 @@ def handle_command(self):
     if command[0] != 200:
         return 505
     use_command(command[1])
-    self.path = post_response_page_path()
+    self.path = get_page_path("postRespose")
     return SimpleHTTPRequestHandler.do_GET(self)
 
 

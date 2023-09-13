@@ -1,6 +1,6 @@
 from http.server import SimpleHTTPRequestHandler
-from model.paths import page_not_found_path
+from python.src.main.model.paths import get_page_path
 
 def HandlePageNotFound(self):
-    self.path = page_not_found_path()
+    self.path = get_page_path('404')
     return SimpleHTTPRequestHandler.do_GET(self)

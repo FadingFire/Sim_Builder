@@ -1,8 +1,11 @@
-def post_response_page_path():
-    return "/pages/postRespose.html"
+import os
+import inspect
 
-def command_input_page_path():
-    return "/pages/commandInputPage.html"
+def get_page_path(filename):
+    script_path = inspect.stack()[1][1]
 
-def page_not_found_path():
-    return "/pages/404.html"
+    script_dir = os.path.dirname(os.path.abspath(script_path))
+    static_file_dir = os.path.join(script_dir, 'python', 'src', 'main', 'pages')
+
+    relative_path = os.path.relpath(os.path.join(static_file_dir, filename+".html"), script_dir)
+    return relative_path
