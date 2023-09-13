@@ -1,5 +1,6 @@
 from http.server import SimpleHTTPRequestHandler, HTTPServer
-from endpoint.endpoint_handler import send_to_correct_endpoints
+
+from python.src.main.endpoint.endpoint_handler import send_to_correct_endpoints
 
 
 class CustomHandler(SimpleHTTPRequestHandler):
