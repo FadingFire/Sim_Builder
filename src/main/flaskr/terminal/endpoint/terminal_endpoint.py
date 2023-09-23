@@ -11,7 +11,7 @@ def parse_command(command):
     """parses the given command, validates and runs it
     
     Returns:
-        text_response: [Int, String, String]
+        response_with_request: [Int, String, String]
     """
     res = response_with_request
     res.update({
@@ -26,7 +26,7 @@ def start_command():
     """sends start command to the server
     
     Returns:
-        text_response: [Int, String, String]
+        text_response: [Int, String]
     """
     res = text_response
     res.update({
@@ -40,7 +40,7 @@ def stop_command():
     """sends stop command to the server
     
     Returns:
-        text_response: [Int, String, String]
+        text_response: [Int, String]
     """
     res = text_response
     res.update({
