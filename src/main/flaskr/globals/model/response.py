@@ -1,3 +1,4 @@
+
 text_response =  {
     "status": 500,
     "message": "It seems the server did not alter any data"

@@ -3,12 +3,4 @@ from src.main.flaskr.terminal.endpoint.terminal_endpoint import terminal_endpoin
 
 app = Flask(__name__)
 
-app.register_blueprint(terminal_endpoint)
-
-@app.route("/")
-def hello():
-    return "Hello World!"
-
-if __name__ == "__main__":
-    app.run()
-    
+app.register_blueprint(terminal_endpoint, url_prefix='/terminal')
