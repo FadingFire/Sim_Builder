@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    body{
+        margin: 0;
+    }
+
+    .form{
+        position: absolute;
+        z-index: 1;
+        display: flex;
+        margin: 1vh;
+    }
+
+    .knop{
+        height: 5vh;
+        width: 50vh;
+    }
+
+    .header{
+        margin: 0;
+        height: 10vh;
+        width: 100%;
+        background-color: blue;
+        display: flex;
+        align-items: center;
+    }
+
+    .background{
+        opacity: 100;
+        position: fixed;
+        z-index: 0;
+    }
+
+    .logo{
+        height: 7vh;
+        width: 10vh;
+        background-color:white;
+        margin-left: 5vh;
+    }
+
+</style>
+<body>
+    <header>
+        <div class="header">
+            <div class="logo">
+                <img src="resources/istockphoto-518202091-612x612.jpg" height="100%" width="100%">
+            </div>
+        </div>
+    </header>
+    <div>
+        <img class="background" src="resources/3c591d9bbbefed4bd8aca3ac988e16cc-1506773100.jpg" alt="none" height="100%" width="100%">
+        <form class="form">
+            <button class="knop"></button>
+            <input placeholder="hier text" inputmode="text">
+        </form>
+    </div>
+</body>
+</html>
