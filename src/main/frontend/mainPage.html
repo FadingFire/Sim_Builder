@@ -11,14 +11,19 @@
 
     .form{
         position: absolute;
+        height: 80%;
+        width: 100%;
         z-index: 1;
         display: flex;
-        margin: 1vh;
+        margin: 0;
+        align-items: start;
+        justify-content: start;
+        flex-direction: row-reverse;
     }
 
     .knop{
-        height: 5vh;
-        width: 50vh;
+        height: 4vh;
+        width: 10vh;
     }
 
     .header{
@@ -43,6 +48,11 @@
         margin-left: 5vh;
     }
 
+    .text{
+        height: 3.3vh;
+    }
+
+
 </style>
 <body>
     <header>
@@ -54,9 +64,27 @@
     </header>
     <div>
         <img class="background" src="resources/3c591d9bbbefed4bd8aca3ac988e16cc-1506773100.jpg" alt="none" height="100%" width="100%">
-        <form class="form">
-            <button class="knop"></button>
-            <input placeholder="hier text" inputmode="text">
+        <form class="form" action="Flights.htm">
+            <button class="knop">submit</button>
+            <input list="airlines" placeholder="start typing...">
+            <datalist id="airlines">
+                <script>
+                    const providers = ["1", "2", "3"];
+                    const airlinesDatalist = document.getElementById("airlines");
+
+                    providers.forEach(myfunction);
+
+                    function myfunction(item) {
+                        const option = document.createElement("option");
+                        option.value = item;
+                        airlinesDatalist.appendChild(option);
+                    }
+                </script>
+            </datalist>
+            <label>
+                <input class="text" placeholder="hier text">
+            </label>
+<!--            <iframe width="500" height="500" frameborder="0" scrolling="yes" src="https://onedrive.live.com/embed?resid=C1790F16E15F7DC4%215632&authkey=%21AOuhiNsjd0E2_34&em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>-->
         </form>
     </div>
 </body>

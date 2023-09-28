@@ -24,11 +24,17 @@ def has_required_data(x):
     return all([
         pd.notna(flightCallSign.iloc[x]) and flightCallSign.iloc[x] != "",
         pd.notna(flightType.iloc[x]) and flightType.iloc[x] != "",
-        pd.notna(flightOrig.iloc[x]) and flightOrig.iloc[x] != "" and flightOrig.iloc[x] != flightDest.iloc[x],
+        pd.notna(flightOrig.iloc[x]) and flightOrig.iloc[x] != "" and flightOrig.iloc[x] != flightDest.iloc[x] and flightOrig.iloc[x] != "ZZZZ",
         pd.notna(flightAltitude.iloc[x]) and flightAltitude.iloc[x] != 0,
         pd.notna(flightSpeed.iloc[x]) and flightSpeed.iloc[x] != 0,
-        pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x]
+        pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x] and flightDest.iloc[x] != "ZZZZ"
     ])
+
+
+def airlines():
+    providers = flightProvider.drop_duplicates(keep="first")
+    providers = providers.astype(str).to_list()
+    print(providers)
 
 
 def write_scene_file(filename):
@@ -45,4 +51,5 @@ def write_scene_file(filename):
 
 if __name__ == "__main__":
     write_scene_file("scenefile.scn")
-    sys.exit(main())
+    airlines()
+    # sys.exit(main())
