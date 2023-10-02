@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
@@ -64,12 +64,19 @@
     </header>
     <div>
         <img class="background" src="resources/3c591d9bbbefed4bd8aca3ac988e16cc-1506773100.jpg" alt="none" height="100%" width="100%">
-        <form class="form" action="Flights.htm">
+        <form class="form">
             <button class="knop">submit</button>
             <input list="airlines" placeholder="start typing...">
             <datalist id="airlines">
                 <script>
-                    const providers = ["1", "2", "3"];
+                    const providers = ['TFL', 'TRA', 'DAL', 'CSN', 'KLM', 'EWG', 'CXA', 'CES', 'ZXP', 'KKK', 'CND', 'CPA', 'UAL', 'SIA', 'KQA', 'SVA', 'PNX',
+                        'GIA', 'CAL', 'NHX', 'FOO', 'HNL', 'AUA', 'nan', 'AZA', 'NJE', 'CAI', 'EJU', 'SWR', 'LOT', 'SAS', 'TAP', 'BTI', 'EZS', 'BEL', 'DLH',
+                        'AFR', 'EZY', 'AAL', 'WGT', 'WHS', 'RYR', 'IBS', 'FIN', 'XRO', 'WZZ', 'BAW', 'AWC', 'CSA', 'FHM', 'LOG', 'EIN', 'EXS', 'LZB', 'UAE',
+                        'BEE', 'THY', 'SUS', 'ASL', 'TGZ', 'ECA', 'VLG', 'AEA', 'JCL', 'GES', 'LXA', 'ACA', 'MPH', 'NAF', 'JAF', 'STK', 'CLX', 'CTN', 'ROT',
+                        'HKS', 'AFL', 'BIO', 'NMA', 'ELY', 'QTR', 'AEE', 'AMC', 'PGT', 'CFE', 'BRU', 'AZE', 'AHO', 'RAM', 'PXR', 'PCT', 'AUI', 'RCH', 'BCG',
+                        'HTM', 'VJT', 'COW', 'ICE', 'NAX', 'HHE', 'SLM', 'BPA', 'BAF', 'OHY', 'MSR', 'TSC', 'AXG', 'VCG', 'FLJ', 'QAJ', 'MAC', 'CAO', 'EUW',
+                        'AZG', 'JEI', 'ANA', 'ETD', 'CKK', 'RRR', 'EDG', 'AIZ', 'OSY', 'SWT', 'AMX', 'KLC', 'ABW', 'IBK', 'OTF', 'KAL', 'SXS', 'MAU', 'JEF',
+                        'NCG', 'HSO', 'LCO', 'TWG', 'BCS', 'TAY', 'AAR', 'SHE', 'FDX', 'VLJ', 'UPS', 'ABR', 'VAS'];
                     const airlinesDatalist = document.getElementById("airlines");
 
                     providers.forEach(myfunction);
@@ -84,7 +91,6 @@
             <label>
                 <input class="text" placeholder="hier text">
             </label>
-<!--            <iframe width="500" height="500" frameborder="0" scrolling="yes" src="https://onedrive.live.com/embed?resid=C1790F16E15F7DC4%215632&authkey=%21AOuhiNsjd0E2_34&em=2&wdAllowInteractivity=False&wdHideGridlines=True&wdHideHeaders=True&wdDownloadButton=True&wdInConfigurator=True&wdInConfigurator=True"></iframe>-->
         </form>
     </div>
 </body>
