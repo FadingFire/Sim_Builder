@@ -3,6 +3,7 @@ import math
 import sys
 from bluesky.__main__ import main
 import numpy as np
+from concurrent.futures import ThreadPoolExecutor
 
 flights = pd.read_csv("Flights.csv")
 
@@ -27,7 +28,6 @@ def get_airport_info(code, info_type):
 
 # Remove duplicates from the CALLSIGN column
 flights = flights.drop_duplicates(subset="CALLSIGN", keep="first")
-
 flights["ORIG_LATITUDE"] = flights["ADEP"].apply(get_airport_info, args=("LAT",))
 flights["ORIG_LONGITUDE"] = flights["ADEP"].apply(get_airport_info, args=("LON",))
 flights["DEST_LATITUDE"] = flights["DEST"].apply(get_airport_info, args=("LAT",))
@@ -76,22 +76,75 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     return round(0 if np.isnan(bearing) else bearing, 2)
 
 
+def calculate_distance(lat1, lon1, lat2, lon2):
+    # Radius of the Earth in meters
+    R = 6371e3
+
+    # Convert latitude and longitude from degrees to radians
+    latOrig = math.radians(lat1)
+    latDest = math.radians(lat2)
+    destLatMinOrigLat = math.radians(lat2 - lat1)
+    destLonMinOrigLon = math.radians(lon2 - lon1)
+
+    # Haversine formula
+    a = math.sin(destLatMinOrigLat/2) * math.sin(destLatMinOrigLat/2) + \
+        math.cos(latOrig) * math.cos(latDest) * \
+        math.sin(destLonMinOrigLon/2) * math.sin(destLonMinOrigLon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+
+    # Calculate the distance in meters
+    d = R * c
+
+    return 50000 if np.isnan(d) else d
+
+
+def calculate_new_point(lat1, lon1, lat2, lon2, f, delta):
+    # Convert latitude and longitude from degrees to radians
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    # Calculate a and b
+    a = math.sin((1 - f) * delta) / math.sin(delta)
+    b = math.sin(f * delta) / math.sin(delta)
+
+    # Calculate x, y, and z
+    x = a * math.cos(lat1) * math.cos(lon1) + b * math.cos(lat2) * math.cos(lon2)
+    y = a * math.cos(lat1) * math.sin(lon1) + b * math.cos(lat2) * math.sin(lon2)
+    z = a * math.sin(lat1) + b * math.sin(lat2)
+
+    # Calculate the new latitude (φi) and longitude (λi)
+    phi_i = math.atan2(z, math.sqrt(x**2 + y**2))
+    lambda_i = math.atan2(y, x)
+
+    # Convert back to degrees
+    phi_i = math.degrees(phi_i)
+    lambda_i = math.degrees(lambda_i)
+
+    return phi_i, lambda_i
+
+
 def write_scene_file(filename):
-    with open(filename, 'w') as f:
+    with open(filename, 'w') as file:
         for x in range(flights.shape[0]):
             if has_required_data(x):
                 orig_lat = flights["ORIG_LATITUDE"].iloc[x]
                 orig_lon = flights["ORIG_LONGITUDE"].iloc[x]
                 dest_lat = flights["DEST_LATITUDE"].iloc[x]
                 dest_lon = flights["DEST_LONGITUDE"].iloc[x]
-                brng = calculate_bearing(orig_lat, orig_lon, dest_lat, dest_lon)
-
+                dist = calculate_distance(orig_lat, orig_lon, dest_lat, dest_lon)
+                f = 1-50000/dist  # You can adjust the fraction as needed
+                delta = 1  # Calculate the angular distance based on your data
+                new_lat, new_lon = calculate_new_point(orig_lat, orig_lon, dest_lat, dest_lon, f, delta)
+                brng = calculate_bearing(new_lat, new_lon, dest_lat, dest_lon)
                 scenetext = (
-                    f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {flightOrig.iloc[x]} {brng} "
+                    f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {new_lat} {new_lon} {brng} "
                     f"FL{int(flightAltitude.iloc[x])} {flightSpeed.iloc[x]}\n"
                     f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
+                    f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
                 )
-                f.write(scenetext)
+                file.write(scenetext)
 
 
 if __name__ == "__main__":
