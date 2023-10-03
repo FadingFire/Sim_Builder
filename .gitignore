@@ -81,6 +81,11 @@ celerybeat-schedule
 # SageMath parsed files
 *.sage.py
 
+# Bluesky Files
+/src/main/bluesky/scenefile.scn
+/src/main/bluesky/Flights.csv
+/src/main/bluesky/airports.csv
+
 # Environments
 .env
 .venv
