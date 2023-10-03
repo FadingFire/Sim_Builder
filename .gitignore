@@ -84,6 +84,8 @@ celerybeat-schedule
 # Bluesky Files
 /src/main/bluesky/scenefile.scn
 /src/main/bluesky/Flights.csv
+/src/main/bluesky/Flights2.csv
+/src/main/bluesky/complete.xlsx
 /src/main/bluesky/airports.csv
 
 # Environments

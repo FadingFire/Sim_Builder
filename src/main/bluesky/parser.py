@@ -1,14 +1,13 @@
 import pandas as pd
 import sys
 from bluesky.__main__ import main
-from calculator import calculate_bearing
-from calculator import calculate_distance
-from calculator import calculate_new_point
+from calculator import calculate_bearing, calculate_distance, calculate_new_point
 
-flights = pd.read_csv("Flights.csv")
 
 # Load airport data from your airport file into a DataFrame
 airport_data = pd.read_csv("airports.csv")
+
+combined_df = pd.read_excel("complete.xlsx")
 
 
 def get_airport_info(code, info_type):
@@ -26,21 +25,22 @@ def get_airport_info(code, info_type):
 
 
 # Remove duplicates from the CALLSIGN column
-flights = flights.drop_duplicates(subset="CALLSIGN", keep="first")
-flights["ORIG_LATITUDE"] = flights["ADEP"].apply(get_airport_info, args=("LAT",))
-flights["ORIG_LONGITUDE"] = flights["ADEP"].apply(get_airport_info, args=("LON",))
-flights["DEST_LATITUDE"] = flights["DEST"].apply(get_airport_info, args=("LAT",))
-flights["DEST_LONGITUDE"] = flights["DEST"].apply(get_airport_info, args=("LON",))
-flightCallSign = flights["CALLSIGN"]
-flightProvider = flights["OPERATOR"]
-flightType = flights["ICAO_ACTYPE"]
-flightDest = flights["DEST"]
-flightOrig = flights["ADEP"]
-flightSpeed = flights["TAS"]
-flightAltitude = flights["RFL"]
-flightWeight = flights["TYPE_OF_TRANSPONDER"]
-flightArrival = flights["T0"]
-flightDeparture = flights["T_UPDATE"]
+combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
+flights_copy = combined_df.copy()
+flights_copy["ORIG_LATITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LAT"))
+flights_copy["ORIG_LONGITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LON"))
+flights_copy["DEST_LATITUDE"] = combined_df["DEST"].apply(lambda x: get_airport_info(x, "LAT"))
+flights_copy["DEST_LONGITUDE"] = combined_df["DEST"].apply(lambda x: get_airport_info(x, "LON"))
+flightCallSign = combined_df["CALLSIGN"]
+flightProvider = combined_df["OPERATOR"]
+flightType = combined_df["ICAO_ACTYPE"]
+flightDest = combined_df["DEST"]
+flightOrig = combined_df["ADEP"]
+flightSpeed = combined_df["TAS"]
+flightAltitude = combined_df["RFL"]
+flightWeight = combined_df["TYPE_OF_TRANSPONDER"]
+flightArrival = combined_df["T0"]
+flightDeparture = combined_df["T_UPDATE"]
 
 
 def has_required_data(x):
@@ -62,22 +62,26 @@ def airlines():
 
 def write_scene_file(filename):
     with open(filename, 'w') as file:
-        for x in range(flights.shape[0]):
+        for x in range(combined_df.shape[0]):
             if has_required_data(x):
-                orig_lat = flights["ORIG_LATITUDE"].iloc[x]
-                orig_lon = flights["ORIG_LONGITUDE"].iloc[x]
-                dest_lat = flights["DEST_LATITUDE"].iloc[x]
-                dest_lon = flights["DEST_LONGITUDE"].iloc[x]
+                orig_lat = flights_copy["ORIG_LATITUDE"].iloc[x]
+                orig_lon = flights_copy["ORIG_LONGITUDE"].iloc[x]
+                dest_lat = flights_copy["DEST_LATITUDE"].iloc[x]
+                dest_lon = flights_copy["DEST_LONGITUDE"].iloc[x]
                 dist = calculate_distance(orig_lat, orig_lon, dest_lat, dest_lon)
-                f = 1-50000/dist  # You can adjust the fraction as needed
+                f = 1 - 50000 / dist  # You can adjust the fraction as needed
                 delta = 1  # Calculate the angular distance based on your data
                 new_lat, new_lon = calculate_new_point(orig_lat, orig_lon, dest_lat, dest_lon, f, delta)
                 brng = calculate_bearing(new_lat, new_lon, dest_lat, dest_lon)
+
+                # Convert flightAltitude to an integer after converting it to a string
+                flight_altitude = int(float(flightAltitude.iloc[x]))
+
                 scenetext = (
                     f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {new_lat} {new_lon} {brng} "
-                    f"FL{int(flightAltitude.iloc[x])} {flightSpeed.iloc[x]}\n"
+                    f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
                     f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
-                    f"00:00:00.00>{flightCallSign.iloc[x]} ATDIST {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
+                    f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
                 )
                 file.write(scenetext)
 

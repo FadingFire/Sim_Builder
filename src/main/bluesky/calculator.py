@@ -55,7 +55,7 @@ def calculate_new_point(lat1, lon1, lat2, lon2, f, delta):
     y = a * math.cos(lat1) * math.sin(lon1) + b * math.cos(lat2) * math.sin(lon2)
     z = a * math.sin(lat1) + b * math.sin(lat2)
 
-    # Calculate the new latitude (φi) and longitude (λi)
+    # Calculate the new latitude and longitude
     phi_i = math.atan2(z, math.sqrt(x**2 + y**2))
     lambda_i = math.atan2(y, x)
 
