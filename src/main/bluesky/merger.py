@@ -67,10 +67,10 @@ def rotate_right(y):
 
 def process_and_save_data(file1, file2, output_file):
     # Load data from the first Excel file
-    df1 = pd.read_csv(file1)
+    df1 = pd.read_csv(file1, sep='[,;]', engine='python')
 
     # Load data from the second Excel file
-    df2 = pd.read_csv(file2)
+    df2 = pd.read_csv(file2, sep='[,;]', engine='python')
 
     # Create AVL trees to store unique data from both files
     avl_tree1 = None
@@ -94,7 +94,7 @@ def process_and_save_data(file1, file2, output_file):
 
     # Helper function to check if a string is "nan" (case-insensitive)
     def is_nan_string(value):
-        return isinstance(value, str) and (value.strip().lower() == "nan" or value.strip().lower() == "zzzz")
+        return isinstance(value, str) and (value.strip().lower() == "nan" or value.strip().lower() == "zzzz" or value.strip().lower() == "cancelled")
 
     # Iterate through the first Excel file and insert unique data into AVL tree 1
     for index, row in df1.iterrows():

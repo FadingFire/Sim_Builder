@@ -11,7 +11,7 @@ combined_df = pd.read_excel("complete.xlsx")
 
 
 def get_airport_info(code, info_type):
-    matching_row = airport_data[airport_data["icao"] == code]
+    matching_row = airport_data[airport_data["# code"] == code]
     if not matching_row.empty:
         # Extract latitude and longitude coordinates from the matching row
         lat = matching_row.iloc[0]["lat"]
@@ -52,7 +52,11 @@ def has_required_data(x):
         pd.notna(flightOrig.iloc[x]) and flightOrig.iloc[x] != "" and flightOrig.iloc[x] != flightDest.iloc[x] and flightOrig.iloc[x] != "ZZZZ",
         pd.notna(flightAltitude.iloc[x]) and flightAltitude.iloc[x] != 0,
         pd.notna(flightSpeed.iloc[x]) and flightSpeed.iloc[x] != 0,
-        pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x] and flightDest.iloc[x] != "ZZZZ"
+        pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x] and flightDest.iloc[x] != "ZZZZ",
+        pd.notna(flights_copy["DEST_LATITUDE"].iloc[x]),
+        pd.notna(flights_copy["DEST_LONGITUDE"].iloc[x]),
+        pd.notna(flights_copy["ORIG_LATITUDE"].iloc[x]),
+        pd.notna(flights_copy["ORIG_LONGITUDE"].iloc[x])
     ])
 
 
@@ -87,6 +91,6 @@ def write_scene_file(filename):
                 file.write(scenetext)
 
 
-# write_scene_file("scenefile.scn")
+write_scene_file("scenefile.scn")
 # airlines()
 # sys.exit(main())
