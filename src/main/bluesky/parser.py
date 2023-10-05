@@ -17,15 +17,16 @@ def get_airport_info(code, info_type):
         lat = matching_row.iloc[0]["lat"]
         lon = matching_row.iloc[0]["lon"]
 
-        if info_type == "LAT":
-            return lat
-        elif info_type == "LON":
-            return lon
-    return None  # Airport code not found in the airport data
+        # Check if lat and lon are valid (not NaN)
+        if pd.notna(lat) and pd.notna(lon):
+            if info_type == "LAT":
+                return lat
+            elif info_type == "LON":
+                return lon
+    return None
 
 
 # Remove duplicates from the CALLSIGN column
-combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
 flights_copy = combined_df.copy()
 flights_copy["ORIG_LATITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LAT"))
 flights_copy["ORIG_LONGITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LON"))
@@ -86,7 +87,6 @@ def write_scene_file(filename):
                 file.write(scenetext)
 
 
-if __name__ == "__main__":
-    write_scene_file("scenefile.scn")
-    # airlines()
-    # sys.exit(main())
+# write_scene_file("scenefile.scn")
+# airlines()
+# sys.exit(main())

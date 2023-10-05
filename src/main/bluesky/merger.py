@@ -65,50 +65,66 @@ def rotate_right(y):
     return x
 
 
-# Load data from the first Excel file
-file1 = "Flights.csv"
-df1 = pd.read_csv(file1)
+def process_and_save_data(file1, file2, output_file):
+    # Load data from the first Excel file
+    df1 = pd.read_csv(file1)
 
-# Load data from the second Excel file
-file2 = "Flights2.csv"
-df2 = pd.read_csv(file2)
+    # Load data from the second Excel file
+    df2 = pd.read_csv(file2)
 
-# Create AVL trees to store unique data from both files
-avl_tree1 = None
-avl_tree2 = None
+    # Create AVL trees to store unique data from both files
+    avl_tree1 = None
+    avl_tree2 = None
+
+    # Define a helper function to check if a key (tuple) is not None
+    def is_key_not_none(key):
+        return key is not None
+
+    # Modify the inorder_traversal function
+    def inorder_traversal(root, unique_data):
+        if root:
+            inorder_traversal(root.left, unique_data)
+            key = root.key
+
+            # Check if any value in the key tuple is NaN
+            if all(not pd.isna(value) for value in key):
+                unique_data.append(key)
+
+            inorder_traversal(root.right, unique_data)
+
+    # Helper function to check if a string is "nan" (case-insensitive)
+    def is_nan_string(value):
+        return isinstance(value, str) and (value.strip().lower() == "nan" or value.strip().lower() == "zzzz")
+
+    # Iterate through the first Excel file and insert unique data into AVL tree 1
+    for index, row in df1.iterrows():
+        key = (
+            str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]),
+            str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"]), str(row["T0"]), str(row["T_UPDATE"])
+        )
+        # Check if any value in the key tuple is "nan" (case-insensitive)
+        if not any(is_nan_string(value) for value in key):
+            avl_tree1 = insert_avl(avl_tree1, key)
+
+    # Iterate through the second Excel file and insert unique data into AVL tree 2
+    for index, row in df2.iterrows():
+        key = (
+            str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]),
+            str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"]), str(row["T0"]), str(row["T_UPDATE"])
+        )
+        # Check if any value in the key tuple is "nan" (case-insensitive)
+        if not any(is_nan_string(value) for value in key):
+            avl_tree2 = insert_avl(avl_tree2, key)
+
+    # Combine unique data from both AVL trees into a new data frame
+    unique_data = []
+    inorder_traversal(avl_tree1, unique_data)
+    inorder_traversal(avl_tree2, unique_data)
+
+    # Convert the combined unique data into a DataFrame
+    combined_df = pd.DataFrame(unique_data, columns=["CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "TAS", "RFL", "TYPE_OF_TRANSPONDER", "T0", "T_UPDATE"])
+    combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
+    combined_df.to_excel('complete.xlsx')
 
 
-# Iterate through the first Excel file and insert unique data into AVL tree 1
-for index, row in df1.iterrows():
-    key = (
-        str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]),
-        str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"]), str(row["T0"]), str(row["T_UPDATE"])
-    )
-    avl_tree1 = insert_avl(avl_tree1, key)
-
-
-# Iterate through the second Excel file and insert unique data into AVL tree 2
-for index, row in df2.iterrows():
-    key = (
-        str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]),
-        str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"]), str(row["T0"]), str(row["T_UPDATE"])
-    )
-    avl_tree2 = insert_avl(avl_tree2, key)
-
-# Combine unique data from both AVL trees into a new data frame
-unique_data = []
-
-
-def inorder_traversal(root, unique_data):
-    if root:
-        inorder_traversal(root.left, unique_data)
-        unique_data.append(root.key)
-        inorder_traversal(root.right, unique_data)
-
-
-inorder_traversal(avl_tree1, unique_data)
-inorder_traversal(avl_tree2, unique_data)
-
-# Convert the combined unique data into a DataFrame
-combined_df = pd.DataFrame(unique_data, columns=["CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "TAS", "RFL", "TYPE_OF_TRANSPONDER", "T0", "T_UPDATE"])
-combined_df.to_excel('complete.xlsx')
+process_and_save_data("Flights.csv", "Flights2.csv", "complete.xlsx")
