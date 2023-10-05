@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    body{
+        margin: 0;
+    }
+
+    .form{
+        position: absolute;
+        height: 80%;
+        width: 100%;
+        z-index: 1;
+        display: flex;
+        margin: 0;
+        align-items: start;
+        justify-content: start;
+        flex-direction: row-reverse;
+    }
+
+    .knop{
+        height: 4vh;
+        width: 10vh;
+    }
+
+    .header{
+        margin: 0;
+        height: 10vh;
+        width: 100%;
+        background-color: blue;
+        display: flex;
+        align-items: center;
+    }
+
+    .background{
+        opacity: 100;
+        position: fixed;
+        z-index: 0;
+    }
+
+    .logo{
+        height: 7vh;
+        width: 10vh;
+        background-color:white;
+        margin-left: 5vh;
+    }
+
+    .text{
+        height: 3.3vh;
+    }
+
+
+</style>
+<body>
+    <header>
+        <div class="header">
+            <div class="logo">
+                <img src="resources/istockphoto-518202091-612x612.jpg" height="100%" width="100%">
+            </div>
+        </div>
+    </header>
+    <div>
+        <img class="background" src="resources/3c591d9bbbefed4bd8aca3ac988e16cc-1506773100.jpg" alt="none" height="100%" width="100%">
+        <form class="form">
+            <button class="knop">submit</button>
+            <input list="airlines" placeholder="start typing...">
+            <datalist id="airlines">
+                <script>
+                    const providers = ['TFL', 'TRA', 'DAL', 'CSN', 'KLM', 'EWG', 'CXA', 'CES', 'ZXP', 'KKK', 'CND', 'CPA', 'UAL', 'SIA', 'KQA', 'SVA', 'PNX',
+                        'GIA', 'CAL', 'NHX', 'FOO', 'HNL', 'AUA', 'nan', 'AZA', 'NJE', 'CAI', 'EJU', 'SWR', 'LOT', 'SAS', 'TAP', 'BTI', 'EZS', 'BEL', 'DLH',
+                        'AFR', 'EZY', 'AAL', 'WGT', 'WHS', 'RYR', 'IBS', 'FIN', 'XRO', 'WZZ', 'BAW', 'AWC', 'CSA', 'FHM', 'LOG', 'EIN', 'EXS', 'LZB', 'UAE',
+                        'BEE', 'THY', 'SUS', 'ASL', 'TGZ', 'ECA', 'VLG', 'AEA', 'JCL', 'GES', 'LXA', 'ACA', 'MPH', 'NAF', 'JAF', 'STK', 'CLX', 'CTN', 'ROT',
+                        'HKS', 'AFL', 'BIO', 'NMA', 'ELY', 'QTR', 'AEE', 'AMC', 'PGT', 'CFE', 'BRU', 'AZE', 'AHO', 'RAM', 'PXR', 'PCT', 'AUI', 'RCH', 'BCG',
+                        'HTM', 'VJT', 'COW', 'ICE', 'NAX', 'HHE', 'SLM', 'BPA', 'BAF', 'OHY', 'MSR', 'TSC', 'AXG', 'VCG', 'FLJ', 'QAJ', 'MAC', 'CAO', 'EUW',
+                        'AZG', 'JEI', 'ANA', 'ETD', 'CKK', 'RRR', 'EDG', 'AIZ', 'OSY', 'SWT', 'AMX', 'KLC', 'ABW', 'IBK', 'OTF', 'KAL', 'SXS', 'MAU', 'JEF',
+                        'NCG', 'HSO', 'LCO', 'TWG', 'BCS', 'TAY', 'AAR', 'SHE', 'FDX', 'VLJ', 'UPS', 'ABR', 'VAS'];
+                    const airlinesDatalist = document.getElementById("airlines");
+
+                    providers.forEach(myfunction);
+
+                    function myfunction(item) {
+                        const option = document.createElement("option");
+                        option.value = item;
+                        airlinesDatalist.appendChild(option);
+                    }
+                </script>
+            </datalist>
+            <label>
+                <input class="text" placeholder="hier text">
+            </label>
+        </form>
+    </div>
+</body>
+</html>

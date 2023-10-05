@@ -2,9 +2,9 @@ pip install virtualenv
 virtualenv .venv
 python3.11 -m venv .venv
 # In cmd.exe
-venv\Scripts\activate.bat
+.venv/Scripts/activate.bat
 # In PowerShell
-venv\Scripts\Activate.ps1
+.venv/Scripts/Activate.ps1
 # In Mac/Linux
 source .venv/bin/activate
 pip install --upgrade pip

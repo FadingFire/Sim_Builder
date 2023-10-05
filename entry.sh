@@ -1,7 +1,7 @@
 # In cmd.exe
-venv\Scripts\activate.bat
+.venv/Scripts/activate.bat
 # In PowerShell
-venv\Scripts\Activate.ps1
+.venv/Scripts/Activate.ps1
 # In Mac/Linux
 source .venv/bin/activate
 export PYTHONDONTWRITEBYTECODE=1
