@@ -7,31 +7,28 @@ from calculator import calculate_bearing, calculate_distance, calculate_new_poin
 # Load airport data from your airport file into a DataFrame
 airport_data = pd.read_csv("airports.csv")
 
+
+airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
+
+
 combined_df = pd.read_excel("complete.xlsx")
 
 
 def get_airport_info(code, info_type):
-    matching_row = airport_data[airport_data["# code"] == code]
-    if not matching_row.empty:
-        # Extract latitude and longitude coordinates from the matching row
-        lat = matching_row.iloc[0]["lat"]
-        lon = matching_row.iloc[0]["lon"]
-
-        # Check if lat and lon are valid (not NaN)
-        if pd.notna(lat) and pd.notna(lon):
-            if info_type == "LAT":
-                return lat
-            elif info_type == "LON":
-                return lon
+    airport_info = airport_info_dict.get(code)
+    if airport_info:
+        if info_type == "LAT":
+            return airport_info["lat"]
+        elif info_type == "LON":
+            return airport_info["lon"]
     return None
 
 
 # Remove duplicates from the CALLSIGN column
-flights_copy = combined_df.copy()
-flights_copy["ORIG_LATITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LAT"))
-flights_copy["ORIG_LONGITUDE"] = combined_df["ADEP"].apply(lambda x: get_airport_info(x, "LON"))
-flights_copy["DEST_LATITUDE"] = combined_df["DEST"].apply(lambda x: get_airport_info(x, "LAT"))
-flights_copy["DEST_LONGITUDE"] = combined_df["DEST"].apply(lambda x: get_airport_info(x, "LON"))
+combined_df["ORIG_LATITUDE"] = combined_df["ADEP"].map(lambda x: get_airport_info(x, "LAT"))
+combined_df["ORIG_LONGITUDE"] = combined_df["ADEP"].map(lambda x: get_airport_info(x, "LON"))
+combined_df["DEST_LATITUDE"] = combined_df["DEST"].map(lambda x: get_airport_info(x, "LAT"))
+combined_df["DEST_LONGITUDE"] = combined_df["DEST"].map(lambda x: get_airport_info(x, "LON"))
 flightCallSign = combined_df["CALLSIGN"]
 flightProvider = combined_df["OPERATOR"]
 flightType = combined_df["ICAO_ACTYPE"]
@@ -53,15 +50,16 @@ def has_required_data(x):
         pd.notna(flightAltitude.iloc[x]) and flightAltitude.iloc[x] != 0,
         pd.notna(flightSpeed.iloc[x]) and flightSpeed.iloc[x] != 0,
         pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x] and flightDest.iloc[x] != "ZZZZ",
-        pd.notna(flights_copy["DEST_LATITUDE"].iloc[x]),
-        pd.notna(flights_copy["DEST_LONGITUDE"].iloc[x]),
-        pd.notna(flights_copy["ORIG_LATITUDE"].iloc[x]),
-        pd.notna(flights_copy["ORIG_LONGITUDE"].iloc[x])
+        pd.notna(combined_df["DEST_LATITUDE"].iloc[x]),
+        pd.notna(combined_df["DEST_LONGITUDE"].iloc[x]),
+        pd.notna(combined_df["ORIG_LATITUDE"].iloc[x]),
+        pd.notna(combined_df["ORIG_LONGITUDE"].iloc[x])
     ])
 
 
 def airlines():
     providers = flightProvider.drop_duplicates(keep="first").astype(str).to_list()
+    print(providers)
     return providers
 
 
@@ -69,10 +67,10 @@ def write_scene_file(filename):
     with open(filename, 'w') as file:
         for x in range(combined_df.shape[0]):
             if has_required_data(x):
-                orig_lat = flights_copy["ORIG_LATITUDE"].iloc[x]
-                orig_lon = flights_copy["ORIG_LONGITUDE"].iloc[x]
-                dest_lat = flights_copy["DEST_LATITUDE"].iloc[x]
-                dest_lon = flights_copy["DEST_LONGITUDE"].iloc[x]
+                orig_lat = combined_df["ORIG_LATITUDE"].iloc[x]
+                orig_lon = combined_df["ORIG_LONGITUDE"].iloc[x]
+                dest_lat = combined_df["DEST_LATITUDE"].iloc[x]
+                dest_lon = combined_df["DEST_LONGITUDE"].iloc[x]
                 dist = calculate_distance(orig_lat, orig_lon, dest_lat, dest_lon)
                 f = 1 - 50000 / dist  # You can adjust the fraction as needed
                 delta = 1  # Calculate the angular distance based on your data
