@@ -6,4 +6,4 @@ app = Flask(__name__)
 
 app.register_blueprint(terminal_endpoint, url_prefix='/terminal')
 app.register_blueprint(scene_endpoint, url_prefix='/scene')
-
+app.config['UPLOAD_FOLDER'] = '../bluesky/files/'
