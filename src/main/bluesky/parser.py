@@ -5,7 +5,7 @@ from calculator import calculate_bearing, calculate_distance, calculate_new_poin
 
 
 # Load airport data from your airport file into a DataFrame
-airport_data = pd.read_csv("airports.csv")
+airport_data = pd.read_csv("Data/airports.csv")
 
 
 airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
@@ -39,6 +39,8 @@ flightAltitude = combined_df["RFL"]
 flightWeight = combined_df["TYPE_OF_TRANSPONDER"]
 flightArrival = combined_df["T0"]
 flightDeparture = combined_df["T_UPDATE"]
+flightCallSign.drop_duplicates(keep="first")
+
 
 
 def has_required_data(x):
@@ -79,16 +81,24 @@ def write_scene_file(filename):
 
                 # Convert flightAltitude to an integer after converting it to a string
                 flight_altitude = int(float(flightAltitude.iloc[x]))
+                if flightOrig[x] == 'EHAM':
+                    scenetext = (
+                        f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {flightOrig.iloc[x]} {brng} "
+                        f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
+                        f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
+                        f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
+                    )
+                    file.write(scenetext)
+                else:
+                    scenetext = (
+                        f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {new_lat} {new_lon} {brng} "
+                        f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
+                        f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
+                        f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
+                    )
+                    file.write(scenetext)
 
-                scenetext = (
-                    f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {new_lat} {new_lon} {brng} "
-                    f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
-                    f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
-                    f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
-                )
-                file.write(scenetext)
 
-
-write_scene_file("scenefile.scn")
+write_scene_file("Data/scenefile.scn")
 # airlines()
 # sys.exit(main())

@@ -82,13 +82,7 @@ celerybeat-schedule
 *.sage.py
 
 # Bluesky Files
-/src/main/bluesky/scenefile.scn
-/src/main/bluesky/Flights.csv
-/src/main/bluesky/Flights2.csv
-/src/main/bluesky/Flights3.csv
-/src/main/bluesky/Flights4.csv
-/src/main/bluesky/complete.xlsx
-/src/main/bluesky/airports.csv
+/src/main/bluesky/Data
 
 # Environments
 .env

@@ -65,7 +65,7 @@ def rotate_right(y):
     return x
 
 
-def process_and_save_data(input_file, output_file):
+def process_and_save_data(input_file, landings_file, output_file):
     # Load data from the input CSV file
     df = pd.read_csv(input_file)
 
@@ -79,37 +79,48 @@ def process_and_save_data(input_file, output_file):
     # Iterate through the input CSV file and insert unique data into the AVL tree
     for index, row in df.iterrows():
         key = (
-            str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]),
-            str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"]), str(row["T0"]), str(row["T_UPDATE"])
+            str(row["FLIGHT_ID"]), str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]), str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"])
         )
         # Check if any value in the key tuple is "nan" (case-insensitive)
         if not any(is_nan_string(value) for value in key):
             avl_tree = insert_avl(avl_tree, key)
 
-    # Modify the inorder_traversal function to accumulate data
-    def inorder_traversal(root, unique_data):
+    def inorder_traversal(root, unique_data, callsigns):
         if root:
-            inorder_traversal(root.left, unique_data)
+            inorder_traversal(root.left, unique_data, callsigns)
             key = root.key
 
             # Check if any value in the key tuple is NaN
             if all(not pd.isna(value) for value in key):
-                unique_data.append(key)
+                callsign = key[0]
+                if callsign not in callsigns:
+                    callsigns.add(callsign)
+                    unique_data.append(key)
 
-            inorder_traversal(root.right, unique_data)
+            inorder_traversal(root.right, unique_data, callsigns)
 
     # Combine unique data from the AVL tree into a new data frame
     unique_data = []
-    inorder_traversal(avl_tree, unique_data)
+    callsigns = set()
+    inorder_traversal(avl_tree, unique_data, callsigns)
 
     # Convert the combined unique data into a DataFrame
-    combined_df = pd.DataFrame(unique_data, columns=["CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "TAS", "RFL", "TYPE_OF_TRANSPONDER", "T0", "T_UPDATE"])
-    combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
+    combined_df = pd.DataFrame(unique_data, columns=["FLIGHT_ID", "CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "TAS", "RFL", "TYPE_OF_TRANSPONDER"])
+
+    # Load additional data from the "AdditionalData.csv" file
+    additional_data_df = pd.read_csv(landings_file)
+
+    # Ensure both data frames have the "FLIGHT_ID" column as objects (strings)
+    combined_df["FLIGHT_ID"] = combined_df["FLIGHT_ID"].astype(str)
+    additional_data_df["FLIGHT_ID"] = additional_data_df["FLIGHT_ID"].astype(str)
+
+    # Merge the additional data based on the FLIGHT_ID column
+    combined_df = pd.merge(combined_df, additional_data_df, on="FLIGHT_ID", how="left")
 
     # Append the new data to the existing "complete.xlsx" file or create a new one if it doesn't exist
     try:
         existing_df = pd.read_excel(output_file)
-        combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset="CALLSIGN", keep="first")
+        combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE"], keep="first")
     except FileNotFoundError:
         pass
 
@@ -118,5 +129,4 @@ def process_and_save_data(input_file, output_file):
 
 
 # Example usage:
-process_and_save_data("Flights4.csv", "complete.xlsx")
-
+process_and_save_data("Data/Flights.csv", "Data/Landings.csv", "Data/complete.xlsx")
