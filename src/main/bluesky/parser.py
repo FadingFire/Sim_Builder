@@ -32,10 +32,9 @@ def write_scene_file(filename, combined_df):
         for index, row in combined_df.iterrows():
             scenetext = ""
             if has_required_data(row):
-                lat, lon = get_airport_info(row["DEST"], "LAT"), get_airport_info(row["DEST"], "LON")
+                lat, lon = get_airport_info(row["DEST"], "lat"), get_airport_info(row["DEST"], "lon")
                 ehamLat, ehamLon = 52.309, 4.764  # Replace with actual values
                 stack = row.get("STACK", None)
-                print(combined_df)
                 if lat is not None and lon is not None:  # Check if lat and lon are valid
                     if stack in ["RIVER", "SUGOL", "ARTIP"]:
                         lat, lon = {
@@ -43,16 +42,24 @@ def write_scene_file(filename, combined_df):
                             "SUGOL": (52.525, 3.967),
                             "ARTIP": (52.511, 5.569)
                         }.get(stack, (lat, lon))
-                    print(combined_df)
-                    brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
+                        brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
+                    else:
+                        brng = calculate_bearing(ehamLat, ehamLon, lat, lon)
                     flight_altitude = int(float(row["RFL"]))
-
-                    scenetext = (
-                        f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack or row['DEST']} {brng} "
-                        f"FL{flight_altitude} {row['TAS']}\n"
-                        f"00:00:00.00>DEST {row['CALLSIGN']} {row['ADEP']}\n"
-                        f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['DEST']} 30 DEL {row['CALLSIGN']}\n"
-                    )
+                    if row['ADEP'] == 'EHAM':
+                        scenetext = (
+                            f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
+                            f"FL{flight_altitude} {row['TAS']}\n"
+                            f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                            f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
+                        )
+                    elif pd.notna(stack):
+                        scenetext = (
+                            f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
+                            f"FL{flight_altitude} {row['TAS']}\n"
+                            f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                            f"00:00:00.00>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
+                        )
                     file.write(scenetext)
 
 
@@ -60,9 +67,15 @@ def getdata(input_file, output_file):
     combined_df = pd.read_excel(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
 
-    # Extract latitude and longitude directly from airport_data DataFrame
-    combined_df["DEST_LATITUDE"] = combined_df["DEST"].map(lambda x: airport_info_dict.get(x, {}).get("lat", None))
-    combined_df["DEST_LONGITUDE"] = combined_df["DEST"].map(lambda x: airport_info_dict.get(x, {}).get("lon", None))
+    def get_dest_lat_lon(dest):
+        airport_info = airport_info_dict.get(dest)
+        if airport_info:
+            return airport_info.get("lat", None), airport_info.get("lon", None)
+        else:
+            # Provide default values (you can replace these with appropriate defaults)
+            return None, None
+
+    combined_df["DEST_LATITUDE"], combined_df["DEST_LONGITUDE"] = zip(*combined_df["DEST"].map(get_dest_lat_lon))
 
     write_scene_file(output_file, combined_df)
 
