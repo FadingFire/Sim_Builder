@@ -119,14 +119,11 @@ def process_and_save_data(input_file, landings_file, output_file):
 
     # Append the new data to the existing "complete.xlsx" file or create a new one if it doesn't exist
     try:
-        existing_df = pd.read_excel(output_file)
+        existing_df = pd.read_excel(output_file, engine="openpyxl")
         combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE"], keep="first")
     except FileNotFoundError:
         pass
 
     # Save the combined data to "complete.xlsx"
     combined_df.to_excel(output_file, index=False)
-
-
-# Example usage:
-process_and_save_data("Data/Flights4.csv", "Data/Landings4.csv", "Data/complete.xlsx")
+    return output_file

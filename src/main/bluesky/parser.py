@@ -1,104 +1,68 @@
 import pandas as pd
 from calculator import calculate_bearing
 
-
-# Load airport data from your airport file into a DataFrame
+# Read the airport data and store it in a global variable
 airport_data = pd.read_csv("Data/airports.csv")
-
-
 airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
-
-
-combined_df = pd.read_excel("Data/complete.xlsx")
 
 
 def get_airport_info(code, info_type):
     airport_info = airport_info_dict.get(code)
     if airport_info:
-        if info_type == "LAT":
-            return airport_info["lat"]
-        elif info_type == "LON":
-            return airport_info["lon"]
+        return airport_info.get(info_type, None)
     return None
 
 
-# Remove duplicates from the CALLSIGN column
-combined_df = combined_df.drop_duplicates(subset="CALLSIGN", keep="first")
-combined_df["DEST_LATITUDE"] = combined_df["DEST"].map(lambda x: get_airport_info(x, "LAT"))
-combined_df["DEST_LONGITUDE"] = combined_df["DEST"].map(lambda x: get_airport_info(x, "LON"))
-flightCallSign = combined_df["CALLSIGN"]
-flightProvider = combined_df["OPERATOR"]
-flightType = combined_df["ICAO_ACTYPE"]
-flightDest = combined_df["DEST"]
-flightOrig = combined_df["ADEP"]
-flightSpeed = combined_df["TAS"]
-flightAltitude = combined_df["RFL"]
-flightWeight = combined_df["TYPE_OF_TRANSPONDER"]
-flightarrival = combined_df["STACK"]
-
-
-
-def has_required_data(x):
-    # Check if all required columns have non-empty values
+def has_required_data(row):
+    # Check if the row has all required data
     return all([
-        pd.notna(flightCallSign.iloc[x]) and flightCallSign.iloc[x] != "",
-        pd.notna(flightType.iloc[x]) and flightType.iloc[x] != "",
-        pd.notna(flightOrig.iloc[x]) and flightOrig.iloc[x] != "" and flightOrig.iloc[x] != flightDest.iloc[x] and flightOrig.iloc[x] != "ZZZZ",
-        pd.notna(flightAltitude.iloc[x]) and flightAltitude.iloc[x] != 0,
-        pd.notna(flightSpeed.iloc[x]) and flightSpeed.iloc[x] != 0,
-        pd.notna(flightDest.iloc[x]) and flightDest.iloc[x] != "" and flightDest.iloc[x] != flightOrig.iloc[x] and flightDest.iloc[x] != "ZZZZ",
-        pd.notna(combined_df["DEST_LATITUDE"].iloc[x]),
-        pd.notna(combined_df["DEST_LONGITUDE"].iloc[x]),
+        pd.notna(row["CALLSIGN"]) and row["CALLSIGN"] != "",
+        pd.notna(row["ICAO_ACTYPE"]) and row["ICAO_ACTYPE"] != "",
+        pd.notna(row["ADEP"]) and row["ADEP"] != row["DEST"] and row["ADEP"] != "ZZZZ",
+        pd.notna(row["RFL"]) and row["RFL"] != 0,
+        pd.notna(row["TAS"]) and row["TAS"] != 0,
+        pd.notna(row["DEST"]) and row["DEST"] != row["ADEP"] and row["DEST"] != "ZZZZ",
+        pd.notna(row["DEST_LATITUDE"]),
+        pd.notna(row["DEST_LONGITUDE"])
     ])
 
 
-def airlines():
-    providers = flightProvider.drop_duplicates(keep="first").astype(str).to_list()
-    print(providers)
-    return providers
+def write_scene_file(filename, combined_df):
+    with open(filename, 'w') as file:
+        for index, row in combined_df.iterrows():
+            scenetext = ""
+            if has_required_data(row):
+                lat, lon = get_airport_info(row["DEST"], "LAT"), get_airport_info(row["DEST"], "LON")
+                ehamLat, ehamLon = 52.309, 4.764  # Replace with actual values
+                stack = row.get("STACK", None)
+                print(combined_df)
+                if lat is not None and lon is not None:  # Check if lat and lon are valid
+                    if stack in ["RIVER", "SUGOL", "ARTIP"]:
+                        lat, lon = {
+                            "RIVER": (51.912, 4.132),
+                            "SUGOL": (52.525, 3.967),
+                            "ARTIP": (52.511, 5.569)
+                        }.get(stack, (lat, lon))
+                    print(combined_df)
+                    brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
+                    flight_altitude = int(float(row["RFL"]))
 
-
-def write_scene_file(filename):
-    with (open(filename, 'w') as file):
-        for x in range(combined_df.shape[0]):
-            if has_required_data(x):
-                dest_lat = combined_df["DEST_LATITUDE"].iloc[x]
-                dest_lon = combined_df["DEST_LONGITUDE"].iloc[x]
-                sugolLat = 52.525
-                sugolLon = 3.967
-                artipLat = 52.511
-                artipLon = 5.569
-                riverLat = 51.912
-                riverLon = 4.132
-                ehamLat = 52.309
-                ehamLon = 4.764
-                if flightarrival.iloc[x] == "RIVER":
-                    brng = calculate_bearing(riverLat, riverLon, ehamLat, ehamLon)
-                elif flightarrival.iloc[x] == "SUGOL":
-                    brng = calculate_bearing(sugolLat, sugolLon, ehamLat, ehamLon)
-                elif flightarrival.iloc[x] == "ARTIP":
-                    brng = calculate_bearing(artipLat, artipLon, ehamLat, ehamLon)
-                else:
-                    brng = calculate_bearing(ehamLat, ehamLon, dest_lat, dest_lon)
-                # Convert flightAltitude to an integer after converting it to a string
-                flight_altitude = int(float(flightAltitude.iloc[x]))
-                if flightOrig.iloc[x] == 'EHAM':
                     scenetext = (
-                        f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} EHAM {brng} "
-                        f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
-                        f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
-                        f"00:00:00.00>{flightCallSign.iloc[x]} ATDIST {flightOrig.iloc[x]} 30 DEL {flightCallSign.iloc[x]}\n"
-                    )
-                    file.write(scenetext)
-                elif pd.notna(flightarrival.iloc[x]):
-                    scenetext = (
-                        f"00:00:00.00>CRE {flightCallSign.iloc[x]} {flightType.iloc[x]} {flightarrival.iloc[x]} {brng} "
-                        f"FL{flight_altitude} {flightSpeed.iloc[x]}\n"
-                        f"00:00:00.00>DEST {flightCallSign.iloc[x]} {flightDest.iloc[x]}\n"
-                        f"00:00:00.00>{flightCallSign.iloc[x]} AT {flightDest.iloc[x]} DO DEL {flightCallSign.iloc[x]}\n"
+                        f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack or row['DEST']} {brng} "
+                        f"FL{flight_altitude} {row['TAS']}\n"
+                        f"00:00:00.00>DEST {row['CALLSIGN']} {row['ADEP']}\n"
+                        f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['DEST']} 30 DEL {row['CALLSIGN']}\n"
                     )
                     file.write(scenetext)
 
 
-write_scene_file("Data/scenefile.scn")
-# airlines()
+def getdata(input_file, output_file):
+    combined_df = pd.read_excel(input_file)
+    combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
+
+    # Extract latitude and longitude directly from airport_data DataFrame
+    combined_df["DEST_LATITUDE"] = combined_df["DEST"].map(lambda x: airport_info_dict.get(x, {}).get("lat", None))
+    combined_df["DEST_LONGITUDE"] = combined_df["DEST"].map(lambda x: airport_info_dict.get(x, {}).get("lon", None))
+
+    write_scene_file(output_file, combined_df)
+
