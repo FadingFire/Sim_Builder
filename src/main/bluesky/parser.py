@@ -69,7 +69,7 @@ def write_scene_file(filename, combined_df):
                     file.write(scenetext)
 
 
-def getdata(input_file, output_file):
+def getdata(input_file, output_file, sort_amount):
     # read the complete Excel file and drop all duplicate Callsigns
     combined_df = pd.read_excel(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
@@ -83,5 +83,15 @@ def getdata(input_file, output_file):
             return None, None
 
     combined_df["DEST_LATITUDE"], combined_df["DEST_LONGITUDE"] = zip(*combined_df["DEST"].map(get_dest_lat_lon))
+
+    # Create an empty DataFrame to store the selected rows
+    selected_rows = pd.DataFrame(columns=combined_df.columns)
+    # Loop through the DataFrame and select the given amount that meet the criteria
+    for index, row in combined_df.iterrows():
+        if len(selected_rows) >= sort_amount:
+            break  # Exit the loop if given amount has been selected
+        if has_required_data(row) and (row["ADEP"] == "EHAM" or pd.notna(row["STACK"])):
+            selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
+
     # run write function with correct files
-    write_scene_file(output_file, combined_df)
+    write_scene_file(output_file, selected_rows)
