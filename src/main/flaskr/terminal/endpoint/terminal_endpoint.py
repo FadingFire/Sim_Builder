@@ -2,6 +2,7 @@ from flask import Blueprint, request
 from markupsafe import escape
 from src.main.bluesky.creator import airlineslist
 
+
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
 
 from src.main.flaskr.globals.model.response import response_with_request, text_response
@@ -9,18 +10,43 @@ from src.main.flaskr.globals.model.response import response_with_request, text_r
 
 @terminal_endpoint.route("/<command>")
 def parse_command(command):
-    """parses the given command, validates and runs it
-
-    Returns:
-        response_with_request: [Int, String, String]
-    """
-    res = response_with_request
+    airline = airlineslist()
+    res = text_response
     res.update({
-            "status": 200,
-            "message": "your command has been seen by the server",
-            "request": escape(command)
+            "status": command,
+            "message": airline
         })
+    if command == "B":
+        command = "CRE 12 12 12 12 12 12 12"
+        try:
+            from PyQt5.QtCore import Qt, QTimer
+            from PyQt5.QtWidgets import QTextEdit
+        except ImportError:
+            from PyQt6.QtCore import Qt, QTimer
+            from PyQt6.QtWidgets import QTextEdit
+
+        from bluesky.network.client import Client
+
+
+        echobox = None
+
+        class TextClient(Client):
+            def __init__(self):
+                super().__init__()
+                self.timer = QTimer()
+                self.timer.timeout.connect(self.update)
+                self.timer.start(20)
+
+            def stack(self, text):
+                ''' Stack function to send stack commands to BlueSky. '''
+                self.send_event(b'STACK', text)
+
+
+        # Create and start BlueSky client
+        bsclient = TextClient()
+        bsclient.connect(event_port=11000, stream_port=11001)
     return res
+
 
 
 @terminal_endpoint.route("/start")
@@ -29,13 +55,10 @@ def start_command():
     Returns:
         text_response: [Int, String]
     """
-    data = request.args.get('choose')
-    airline = airlineslist()
     res = text_response
-    print(request.args.get('choose'))
     res.update({
-            "status": data,
-            "message": airline
+            "status": 200,
+            "message": "the start command has been seen by the server",
         })
     return res
 
