@@ -1,21 +1,10 @@
-import sys
-
 from flask import Blueprint
-from markupsafe import escape
 from src.main.bluesky.creator import airlineslist
+from src.main.bluesky.Client import TextClient
 
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
 
 from src.main.flaskr.globals.model.response import response_with_request, text_response
-from bluesky.network.client import Client
-
-
-class TextClient(Client):
-    def __init__(self):
-        super().__init__()
-
-    def stack(self, text):
-        self.send_event(b'STACK', text, b"*")
 
 
 bsclient = TextClient()
@@ -24,15 +13,25 @@ bsclient.connect(event_port=11000, stream_port=11001)
 
 @terminal_endpoint.route("/<command>")
 def parse_command(command):
+    # get all the airlines
     airline = airlineslist()
+    # send all airlines to FE
     res = text_response
     res.update({
         "status": command,
         "message": airline
     })
-    stack = "CRE 12 12 12 12 12 12 12"
+    # stack commands
     if bsclient is not None:
-        bsclient.stack(stack)
+        if command == "A":
+            stack = "CRE 11 12 12 12 12 12 12"
+            bsclient.stack(stack)
+        if command == "B":
+            stack = "CRE 12 12 12 12 12 12 12"
+            bsclient.stack(stack)
+        if command == "C":
+            stack = "QUIT"
+            bsclient.stack(stack)
     return res
 
 
