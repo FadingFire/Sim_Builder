@@ -7,13 +7,14 @@ terminal_endpoint = Blueprint('terminal_endpoint', __name__)
 from src.main.flaskr.globals.model.response import response_with_request, text_response
 
 
-bsclient = TextClient()
-bsclient.connect(event_port=11000, stream_port=11001)
+
 
 
 @terminal_endpoint.route("/<command>")
 def parse_command(command):
     # get all the airlines
+    bsclient = TextClient()
+    bsclient.connect(event_port=11000, stream_port=11001)
     airline = airlineslist()
     # send all airlines to FE
     res = text_response
