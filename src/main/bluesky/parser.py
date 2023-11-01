@@ -1,9 +1,17 @@
+import numpy as np
 import pandas as pd
-from calculator import calculate_bearing
+import math
+
 
 # Read the airport data and store it in a global variable
 airport_data = pd.read_csv("Data/airports.csv")
 airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
+
+
+def get_dutch_airports():
+    dutch_airports = airport_data[airport_data[" country code"].str.strip() == "NL"]
+    airports = dutch_airports["# code"].astype(str).to_list()
+    return airports
 
 
 def get_airport_info(code, info_type):
@@ -12,6 +20,21 @@ def get_airport_info(code, info_type):
     if airport_info:
         return airport_info.get(info_type, None)
     return None
+
+
+def calculate_bearing(lat1, lon1, lat2, lon2):
+    # Convert latitude and longitude from degrees to radians
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    # Calculate bearing
+    y = math.sin(lon2 - lon1) * math.cos(lat2)
+    x = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1)
+    theta = math.atan2(y, x)
+    bearing = (theta * 180 / math.pi + 360) % 360  # in degrees
+    return round(0 if np.isnan(bearing) else bearing, 2)
 
 
 def has_required_data(row):
@@ -50,7 +73,8 @@ def write_scene_file(filename, combined_df):
                         brng = calculate_bearing(ehamLat, ehamLon, lat, lon)
                     flight_altitude = int(float(row["RFL"]))
                     # if origin is Amsterdam, set the origin to EHAM and delete at a distance of 30
-                    if row['ADEP'] == 'EHAM':
+                    Nederland = get_dutch_airports()
+                    if row['ADEP'] in Nederland:
                         scenetext = (
                             f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
                             f"FL{flight_altitude} {row['TAS']}\n"
@@ -69,7 +93,7 @@ def write_scene_file(filename, combined_df):
                     file.write(scenetext)
 
 
-def getdata(input_file, output_file):
+def getdata(input_file, output_file, sort_amount):
     # read the complete Excel file and drop all duplicate Callsigns
     combined_df = pd.read_excel(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
@@ -83,5 +107,17 @@ def getdata(input_file, output_file):
             return None, None
 
     combined_df["DEST_LATITUDE"], combined_df["DEST_LONGITUDE"] = zip(*combined_df["DEST"].map(get_dest_lat_lon))
+
+    # Create an empty DataFrame to store the selected rows
+    selected_rows = pd.DataFrame(columns=combined_df.columns)
+    Nederland = get_dutch_airports()
+
+    # Loop through the DataFrame and select the given amount that meet the criteria
+    for index, row in combined_df.iterrows():
+        if len(selected_rows) >= sort_amount:
+            break  # Exit the loop if given amount has been selected
+        if has_required_data(row) and (row["ADEP"] in Nederland or pd.notna(row["STACK"])):
+            selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
+    get_dutch_airports()
     # run write function with correct files
-    write_scene_file(output_file, combined_df)
+    write_scene_file(output_file, selected_rows)

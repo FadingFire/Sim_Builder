@@ -9,5 +9,6 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip
 pip install Flask
+pip install flask-cors
 pip install numpy
 pip install bluesky-simulator[full]
