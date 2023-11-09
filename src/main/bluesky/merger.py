@@ -117,13 +117,13 @@ def process_and_save_data(input_file, landings_file, output_file):
     # Merge the additional data based on the FLIGHT_ID column
     combined_df = pd.merge(combined_df, additional_data_df, on="FLIGHT_ID", how="left")
 
-    # Append the new data to the existing "complete.xlsx" file or create a new one if it doesn't exist
+    # Append the new data to the existing "complete.csv" file or create a new one if it doesn't exist
     try:
-        existing_df = pd.read_excel(output_file, engine="openpyxl")
+        existing_df = pd.read_csv(output_file)
         combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE"], keep="first")
     except FileNotFoundError:
         pass
 
-    # Save the combined data to "complete.xlsx"
-    combined_df.to_excel(output_file, index=False)
+    # Save the combined data to "complete.csv"
+    combined_df.to_csv(output_file, index=False)
     return output_file

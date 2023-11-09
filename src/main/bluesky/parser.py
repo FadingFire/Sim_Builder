@@ -94,8 +94,8 @@ def write_scene_file(filename, combined_df):
 
 
 def getdata(input_file, output_file, sort_amount):
-    # read the complete Excel file and drop all duplicate Callsigns
-    combined_df = pd.read_excel(input_file)
+    # read the complete Csv file and drop all duplicate Callsigns
+    combined_df = pd.read_csv(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
 
     def get_dest_lat_lon(dest):
@@ -118,6 +118,5 @@ def getdata(input_file, output_file, sort_amount):
             break  # Exit the loop if given amount has been selected
         if has_required_data(row) and (row["ADEP"] in Nederland or pd.notna(row["STACK"])):
             selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
-    get_dutch_airports()
     # run write function with correct files
     write_scene_file(output_file, selected_rows)

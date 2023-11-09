@@ -2,9 +2,9 @@ import pandas as pd
 
 
 # temp file setup
-inputfile = "Data/Flights4.csv"
-outputfile = "Data/complete.xlsx"
-landingsfile = "Data/Landings4.csv"
+inputfile = "Data/Flights3.csv"
+outputfile = "Data/complete.csv"
+landingsfile = "Data/Landings3.csv"
 scenefile = "Data/scenefile.scn"
 sort_amount = 50
 
@@ -18,7 +18,7 @@ def parsefiles():
 
 
 def airlineslist():
-    combined_df = pd.read_excel("src/main/bluesky/Data/complete.xlsx")
+    combined_df = pd.read_csv("Data/complete.csv")
     allproviders = combined_df["OPERATOR"]
     providers = allproviders.drop_duplicates(keep="first").astype(str).to_list()
     return providers
@@ -32,8 +32,8 @@ def makescene():
 def runall():
     parsefiles()
     providers = airlineslist()
-    print(providers)
+    # print(providers)
     makescene()
 
 
-# runall()
+runall()

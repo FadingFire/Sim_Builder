@@ -1,10 +1,13 @@
+import os.path
+import sys
+
 from flask import Blueprint
 from src.main.bluesky.Client import TextClient
+from src.main.flaskr.globals.model.response import response_with_request, text_response
+import pygame as pg
+import bluesky as bs
 
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
-
-from src.main.flaskr.globals.model.response import response_with_request, text_response
-
 
 bsclient = TextClient()
 bsclient.connect(event_port=11000, stream_port=11001)
@@ -12,9 +15,6 @@ bsclient.connect(event_port=11000, stream_port=11001)
 
 @terminal_endpoint.route("/<command>")
 def parse_command(command):
-    # get all the airlines
-
-    # send all airlines to FE
     res = text_response
     res.update({
         "status": 200,
@@ -50,6 +50,8 @@ def stop_command():
     res = text_response
     res.update({
         "status": 200,
-        "message": "the start command has been seen by the server",
+        "message": "the stop command has been seen by the server",
     })
+    if bsclient is not None:
+        bsclient.stack("QUIT")
     return res
