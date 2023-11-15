@@ -120,7 +120,7 @@ def process_and_save_data(input_file, landings_file, output_file):
     # Append the new data to the existing "complete.csv" file or create a new one if it doesn't exist
     try:
         existing_df = pd.read_csv(output_file)
-        combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE"], keep="first")
+        combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE", "STACK"], keep="first")
     except FileNotFoundError:
         pass
 

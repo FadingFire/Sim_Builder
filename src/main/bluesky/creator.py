@@ -1,6 +1,5 @@
 import pandas as pd
 
-
 # temp file setup
 inputfile = "Data/Flights3.csv"
 outputfile = "Data/complete.csv"
@@ -18,7 +17,7 @@ def parsefiles():
 
 
 def airlineslist():
-    combined_df = pd.read_csv("Data/complete.csv")
+    combined_df = pd.read_csv(outputfile)
     allproviders = combined_df["OPERATOR"]
     providers = allproviders.drop_duplicates(keep="first").astype(str).to_list()
     return providers
@@ -31,9 +30,8 @@ def makescene():
 
 def runall():
     parsefiles()
-    providers = airlineslist()
-    # print(providers)
+    airlineslist()
     makescene()
 
 
-runall()
+makescene()

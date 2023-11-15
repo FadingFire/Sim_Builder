@@ -1,11 +1,6 @@
-import os.path
-import sys
-
 from flask import Blueprint
 from src.main.bluesky.Client import TextClient
 from src.main.flaskr.globals.model.response import response_with_request, text_response
-import pygame as pg
-import bluesky as bs
 
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
 

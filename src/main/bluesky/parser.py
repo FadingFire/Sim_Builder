@@ -60,37 +60,36 @@ def write_scene_file(filename, combined_df):
                 ehamLat, ehamLon = 52.309, 4.764
                 stack = row.get("STACK", None)
                 # check if stack is not empty and set stack and brng
-                if lat is not None and lon is not None:
-                    if stack in ["RIVER", "SUGOL", "ARTIP"]:
-                        lat, lon = {
-                            "RIVER": (51.912, 4.132),
-                            "SUGOL": (52.525, 3.967),
-                            "ARTIP": (52.511, 5.569)
-                        }.get(stack, (lat, lon))
-                        brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
+                if lat is not None and lon is not None and stack in ["RIVER", "SUGOL", "ARTIP"]:
+                    lat, lon = {
+                        "RIVER": (51.912, 4.132),
+                        "SUGOL": (52.525, 3.967),
+                        "ARTIP": (52.511, 5.569)
+                    }.get(stack, (lat, lon))
+                    brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
                     # else brng is calculated from origin
-                    else:
-                        brng = calculate_bearing(ehamLat, ehamLon, lat, lon)
-                    flight_altitude = int(float(row["RFL"]))
-                    # if origin is Amsterdam, set the origin to EHAM and delete at a distance of 30
-                    Nederland = get_dutch_airports()
-                    if row['ADEP'] in Nederland:
-                        scenetext = (
-                            f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
-                            f"FL{flight_altitude} {row['TAS']}\n"
-                            f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                            f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
-                        )
-                    # else if stack is not empty set origin as the correct stack and delete at Amsterdam
-                    elif pd.notna(stack):
-                        scenetext = (
-                            f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
-                            f"FL{flight_altitude} {row['TAS']}\n"
-                            f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                            f"00:00:00.00>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
-                        )
-                    # write to the scenefile
-                    file.write(scenetext)
+                else:
+                    brng = calculate_bearing(ehamLat, ehamLon, lat, lon)
+                flight_altitude = int(float(row["RFL"]))
+                # if origin is Netherlands, set the origin as origin and delete at a distance of 30
+                Nederland = get_dutch_airports()
+                if row['ADEP'] in Nederland:
+                    scenetext = (
+                        f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
+                        f"FL{flight_altitude} {row['TAS']}\n"
+                        f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                        f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
+                    )
+                # else if stack is not empty set origin as the correct stack and delete at Destination
+                elif pd.notna(stack):
+                    scenetext = (
+                        f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
+                        f"FL{flight_altitude} {row['TAS']}\n"
+                        f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                        f"00:00:00.00>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
+                    )
+                # write to the scenefile
+                file.write(scenetext)
 
 
 def getdata(input_file, output_file, sort_amount):
@@ -112,11 +111,17 @@ def getdata(input_file, output_file, sort_amount):
     selected_rows = pd.DataFrame(columns=combined_df.columns)
     Nederland = get_dutch_airports()
 
-    # Loop through the DataFrame and select the given amount that meet the criteria
-    for index, row in combined_df.iterrows():
-        if len(selected_rows) >= sort_amount:
-            break  # Exit the loop if given amount has been selected
-        if has_required_data(row) and (row["ADEP"] in Nederland or pd.notna(row["STACK"])):
-            selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
+    while len(selected_rows) < sort_amount:
+        # Get a random sample of rows from the DataFrame
+        random_sample = combined_df.sample(n=sort_amount - len(selected_rows))
+
+        # Loop through the random sample and select rows that meet the criteria
+        for index, row in random_sample.iterrows():
+            if has_required_data(row) and (row["ADEP"] in Nederland or pd.notna(row["STACK"])):
+                selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
+
+    # Trim excess rows if more than sort_amount were selected
+    selected_rows = selected_rows.head(sort_amount)
+
     # run write function with correct files
     write_scene_file(output_file, selected_rows)
