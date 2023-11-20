@@ -37,9 +37,6 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     return round(0 if np.isnan(bearing) else bearing, 2)
 
 
-
-
-
 def write_scene_file(filename, combined_df):
     with open(filename, 'w') as file:
         for index, row in combined_df.iterrows():
@@ -98,6 +95,7 @@ def getdata(input_file, output_file, sort_amount):
     # Create an empty DataFrame to store the selected rows
     selected_rows = pd.DataFrame(columns=combined_df.columns)
     Nederland = get_dutch_airports()
+
 
     while len(selected_rows) < sort_amount:
         # Get a random sample of rows from the DataFrame
