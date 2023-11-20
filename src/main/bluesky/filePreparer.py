@@ -8,22 +8,14 @@ def filepreparer(filename, landingsfile):
     # Specify the columns you want to delete
     columns_to_delete = ['STATUS', 'T_UPDATE', 'T0', 'SFPL_ID', 'REGISTRATION', 'WTC', 'CFMU_DELAY', 'CONTROL', 'FPOS_TRACK_ID', 'TIME']
 
-    # Check if each column in 'columns_to_delete' exists in the DataFrame
-    for column in columns_to_delete:
-        if column in info.columns:
-            # If it exists, delete the column
-            info.drop(columns=[column], inplace=True)
+    # Remove the specified columns from 'info' DataFrame
+    info = info.drop(columns=columns_to_delete, errors='ignore')
 
-            # Check if each column in 'columns_to_delete' exists in the DataFrame
-    for column in columns_to_delete:
-        if column in landings.columns:
-            # If it exists, delete the column
-            landings.drop(columns=[column], inplace=True)
+    # Remove the specified columns from 'landings' DataFrame
+    landings = landings.drop(columns=columns_to_delete, errors='ignore')
 
-    # Save the modified DataFrame back to the same CSV file
-
+    # Save the modified DataFrames back to the same CSV files
     info.to_csv(filename, index=False)
     landings.to_csv(landingsfile, index=False)
+
     return filename, landingsfile
-
-
