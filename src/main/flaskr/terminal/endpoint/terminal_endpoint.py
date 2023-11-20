@@ -26,6 +26,7 @@ def parse_command(command):
     return res
 
 
+
 @terminal_endpoint.route("/start")
 def start_command():
     """sends start command to the server
