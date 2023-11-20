@@ -10,6 +10,7 @@ CORS(app)
 
 app.register_blueprint(terminal_endpoint, url_prefix='/terminal')
 app.register_blueprint(scene_endpoint, url_prefix='/scene')
+app.config['UPLOAD_FOLDER'] = '../bluesky/files/'
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=5000)

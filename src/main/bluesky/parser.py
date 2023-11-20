@@ -37,9 +37,6 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     return round(0 if np.isnan(bearing) else bearing, 2)
 
 
-
-
-
 def write_scene_file(filename, combined_df):
     with open(filename, 'w') as file:
         for index, row in combined_df.iterrows():
