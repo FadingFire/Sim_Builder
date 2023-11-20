@@ -2,7 +2,12 @@ from flask import Blueprint
 from src.main.bluesky.Client import TextClient
 from src.main.flaskr.globals.model.response import response_with_request, text_response
 
+
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
+
+bsclient = TextClient()
+bsclient.connect(event_port=11000, stream_port=11001)
+
 
 bsclient = TextClient()
 bsclient.connect(event_port=11000, stream_port=11001)

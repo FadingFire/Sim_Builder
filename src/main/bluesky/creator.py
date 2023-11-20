@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 # temp file setup
 inputfile = "Data/Flights3.csv"
 outputfile = "Data/complete.csv"
