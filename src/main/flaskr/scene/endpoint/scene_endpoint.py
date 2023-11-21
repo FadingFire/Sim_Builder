@@ -4,10 +4,9 @@ from flask import current_app
 from flask import request
 from markupsafe import escape
 from werkzeug.utils import secure_filename
+from src.main.flaskr.globals.model.response import response_with_request, text_response
 
 scene_endpoint = Blueprint('scene_endpoint', __name__)
-
-from src.main.flaskr.globals.model.response import response_with_request, text_response
 
 
 @scene_endpoint.route("/load/<filename>")

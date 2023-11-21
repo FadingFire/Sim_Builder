@@ -1,20 +1,14 @@
 from flask import Blueprint
-from src.main.bluesky.Client import TextClient
+from src.main.bluesky.run import runbluesky
 from src.main.flaskr.globals.model.response import response_with_request, text_response
 
 
 terminal_endpoint = Blueprint('terminal_endpoint', __name__)
 
-bsclient = TextClient()
-bsclient.connect(event_port=11000, stream_port=11001)
-
-
-bsclient = TextClient()
-bsclient.connect(event_port=11000, stream_port=11001)
-
 
 @terminal_endpoint.route("/<command>")
 def parse_command(command):
+    from src.main.bluesky.Client import bsclient
     res = text_response
     res.update({
         "status": 200,
@@ -26,14 +20,16 @@ def parse_command(command):
     return res
 
 
-
 @terminal_endpoint.route("/start")
 def start_command():
     """sends start command to the server
     Returns:
         text_response: [Int, String]
     """
+    from src.main.bluesky.Client import connectbs
     res = text_response
+    runbluesky()
+    connectbs()
     res.update({
         "status": 200,
         "message": "the start command has been seen by the server",
@@ -48,6 +44,7 @@ def stop_command():
     Returns:
         text_response: [Int, String]
     """
+    from src.main.bluesky.Client import bsclient
     res = text_response
     res.update({
         "status": 200,

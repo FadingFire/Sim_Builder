@@ -96,7 +96,6 @@ def getdata(input_file, output_file, sort_amount):
     selected_rows = pd.DataFrame(columns=combined_df.columns)
     Nederland = get_dutch_airports()
 
-
     while len(selected_rows) < sort_amount:
         # Get a random sample of rows from the DataFrame
         random_sample = combined_df.sample(n=sort_amount - len(selected_rows))
