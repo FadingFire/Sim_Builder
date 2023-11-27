@@ -2,9 +2,9 @@ import pandas as pd
 
 
 # temp file setup
-inputfile = "Data/Flights3.csv"
+inputfile = "Data/Flights4.csv"
 outputfile = "Data/complete.csv"
-landingsfile = "Data/Landings3.csv"
+landingsfile = "Data/Landings4.csv"
 scenefile = "Data/scenefile.scn"
 sort_amount = 50
 
@@ -35,4 +35,4 @@ def runall():
     makescene()
 
 
-makescene()
+parsefiles()
