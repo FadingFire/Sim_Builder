@@ -69,9 +69,10 @@ def paginated_file():
     page_size = request.args.get('pageSize', default=10, type=int)
     page_number = request.args.get('pageNumber', default=1, type=int)
     sortBy = request.args.get('sortBy', default="FLIGHT_ID", type=str)
-    deleteafter = request.args.get('DeleteOlder', default="FLIGHT_ID", type=str)
+    deleteafter = request.args.get('DeleteOlder', default="01-01-2000", type=str)
+    deleterow = request.args.get('Deleterow', default="", type=str)
 
     # Call paginate_dataframe function to get paginated data
-    paginated_data = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile)
+    paginated_data = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile, deleterow)
     res["data"] = paginated_data
     return res
