@@ -2,16 +2,16 @@ import pandas as pd
 
 
 # temp file setup
-inputfile = "Data/Flights4.csv"
-outputfile = "Data/complete.csv"
-landingsfile = "Data/Landings4.csv"
+# inputfile = "Data/Flights4.csv"
+# outputfile = "Data/complete.csv"
+# landingsfile = "Data/Landings4.csv"
 scenefile = "Data/scenefile.scn"
 sort_amount = 50
 
 
-def parsefiles():
-    from filePreparer import filepreparer
-    from merger import process_and_save_data
+def parsefiles(inputfile, landingsfile, outputfile):
+    from src.main.bluesky.filePreparer import filepreparer
+    from src.main.bluesky.merger import process_and_save_data
     # running functions with correct files
     flightsfile, landingfile = filepreparer(inputfile, landingsfile)
     process_and_save_data(flightsfile, landingfile, outputfile)
@@ -34,5 +34,3 @@ def runall():
     airlineslist()
     makescene()
 
-
-parsefiles()
