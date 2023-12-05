@@ -4,7 +4,7 @@ import math
 
 
 # Read the airport data and store it in a global variable
-airport_data = pd.read_csv("Data/airports.csv")
+airport_data = pd.read_csv("src/main/bluesky/Data/airports.csv")
 airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
 
 

@@ -1,8 +1,8 @@
 import os
 import pandas as pd
 from flask import Blueprint, current_app, request, send_file
-from src.main.bluesky.paginator import paginate_dataframe
-from src.main.bluesky.creator import parsefiles
+from src.main.bluesky.paginator import paginate_dataframe, editdata
+from src.main.bluesky.creator import parsefiles, makescene
 # from src.main.bluesky.creator import parsefiles
 from werkzeug.utils import secure_filename
 
@@ -70,9 +70,29 @@ def paginated_file():
     page_number = request.args.get('pageNumber', default=1, type=int)
     sortBy = request.args.get('sortBy', default="FLIGHT_ID", type=str)
     deleteafter = request.args.get('DeleteOlder', default="01-01-2000", type=str)
-    deleterow = request.args.get('Deleterow', default="", type=str)
+    deleterow = request.args.get('Deleterow', default=0, type=int)
+    order = request.args.get('order', default="asc", type=str)
 
     # Call paginate_dataframe function to get paginated data
-    paginated_data = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile, deleterow)
+    paginated_data = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile, deleterow, order)
     res["data"] = paginated_data
     return res
+
+
+@scene_endpoint.route('/scene', methods=['GET'])
+def scenefile():
+    sortamount = request.args.get('sortamount', default=50, type=int)
+
+    inputfile = "../bluesky/Data/scenefile.scn"
+    makescene(outputfile, "src/main/bluesky/Data/scenefile.scn", sortamount)
+    return send_file(inputfile, as_attachment=True, mimetype='application/octet-stream')
+
+
+@scene_endpoint.route('/update', methods=['POST'])
+def update_data():
+    res = text_response
+    updated_data = request.json
+    editdata(outputfile, updated_data)
+    return res
+
+
