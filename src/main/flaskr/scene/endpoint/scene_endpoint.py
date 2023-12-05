@@ -74,8 +74,9 @@ def paginated_file():
     order = request.args.get('order', default="asc", type=str)
 
     # Call paginate_dataframe function to get paginated data
-    paginated_data = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile, deleterow, order)
+    paginated_data, rowcount = paginate_dataframe(page_size, page_number, sortBy, deleteafter, outputfile, deleterow, order)
     res["data"] = paginated_data
+    res["pagenumber"] = rowcount
     return res
 
 
@@ -91,8 +92,11 @@ def scenefile():
 @scene_endpoint.route('/update', methods=['POST'])
 def update_data():
     res = text_response
-    updated_data = request.json
-    editdata(outputfile, updated_data)
+    editdata(outputfile, request.json)
+    res.update({
+        "status": 200,
+        "message": "The server has seen your request"
+    })
     return res
 
 

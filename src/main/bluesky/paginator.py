@@ -5,6 +5,7 @@ from flask import jsonify
 def paginate_dataframe(page_size, page_number, sortby, deleteafter, completefile, deleterow, order):
     # Check if the specified column exists in the DataFrame
     df = pd.read_csv(completefile)
+    row_count = df.shape[0]
     df.fillna(value=pd.NA, inplace=True)
 
     if sortby in df.columns:
@@ -15,6 +16,7 @@ def paginate_dataframe(page_size, page_number, sortby, deleteafter, completefile
     else:
         df = df.sort_values(by="FLIGHT_ID")
 
+    row_count = row_count / 10
     res = df[~(df['Date_Added'] < deleteafter)]
     res = res[~(res['FLIGHT_ID'] == deleterow)]  # Exclude rows with FLIGHT_ID equal to deleterow
 
@@ -28,24 +30,22 @@ def paginate_dataframe(page_size, page_number, sortby, deleteafter, completefile
     # Convert the page_data to CSV
     page_data_csv = page_data.to_csv(index=False)
 
-    return page_data_csv
+    return page_data_csv, row_count
 
 
 def editdata(completefile, updated_data):
     df = pd.read_csv(completefile)
     for index, row in df.iterrows():
-        if row['FLIGHT_ID'] == updated_data['FLIGHT_ID']:
+        if str(row['FLIGHT_ID']) == updated_data['FLIGHT_ID']:
             # Update the DataFrame with the new data
-            df.at[index, 'Operator'] = updated_data['Operator']
-            df.at[index, 'ICAOType'] = updated_data['ICAOType']
-            df.at[index, 'ADEP'] = updated_data['ADEP']
-            df.at[index, 'DEST'] = updated_data['DEST']
-            df.at[index, 'TAS'] = updated_data['TAS']
-            df.at[index, 'RFL'] = updated_data['RFL']
-            df.at[index, 'WeightClass'] = updated_data['WeightClass']
-            df.at[index, 'RunWay'] = updated_data['RunWay']
-            df.at[index, 'GATE'] = updated_data['GATE']
-            df.at[index, 'STACK'] = updated_data['STACK']
+            df.at[index, 'CALLSIGN'] = updated_data.get('Callsign', row['CALLSIGN'])
+            df.at[index, 'OPERATOR'] = updated_data.get('Operator', row['OPERATOR'])
+            df.at[index, 'ICAO_ACTYPE'] = updated_data.get('ICAOType', row['ICAO_ACTYPE'])
+            df.at[index, 'ADEP'] = updated_data.get('ADEP', row['ADEP'])
+            df.at[index, 'DEST'] = updated_data.get('DEST', row['DEST'])
+            df.at[index, 'TAS'] = float(updated_data.get('TAS', row['TAS']))
+            df.at[index, 'RFL'] = float(updated_data.get('RFL', row['RFL']))
+            df.at[index, 'RUNWAY'] = updated_data.get('RUNWAY', row['RUNWAY'])
+            df.at[index, 'GATE'] = updated_data.get('GATE', row['GATE'])
+            df.at[index, 'STACK'] = updated_data.get('STACK', row['STACK'])
             df.to_csv(completefile, index=False)
-
-    return jsonify({'message': 'Row not found'}), 404
