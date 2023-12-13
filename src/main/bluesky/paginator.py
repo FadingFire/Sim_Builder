@@ -64,6 +64,14 @@ def editdata(completefile, updated_data):
     for index, row in df.iterrows():
         if str(row['FLIGHT_ID']) == updated_data['FLIGHT_ID']:
             # Update the DataFrame with the new data
-            df.at[index, 'CALLSIGN'] = updated_data.get('Callsign', row['CALLSIGN'])
-            # ... (update other columns)
+            df.at[index, 'OPERATOR'] = updated_data.get('Operator', row['OPERATOR'])
+            df.at[index, 'ICAO_ACTYPE'] = updated_data.get('ICAOType', row['ICAO_ACTYPE'])
+            df.at[index, 'ADEP'] = updated_data.get('ADEP', row['ADEP'])
+            df.at[index, 'DEST'] = updated_data.get('DEST', row['DEST'])
+            df.at[index, 'TAS'] = float(updated_data.get('TAS', row['TAS']))
+            df.at[index, 'RFL'] = float(updated_data.get('RFL', row['RFL']))
+            df.at[index, 'WTC'] = updated_data.get('Weightclass', row['WTC'])
+            df.at[index, 'RUNWAY'] = updated_data.get('RUNWAY', row['RUNWAY'])
+            df.at[index, 'GATE'] = updated_data.get('GATE', row['GATE'])
+            df.at[index, 'STACK'] = updated_data.get('STACK', row['STACK'])
             df.to_csv(completefile, index=False)
