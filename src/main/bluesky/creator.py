@@ -16,9 +16,9 @@ def airlineslist(outputfile):
     return providers
 
 
-def makescene(outputfile, scenefile, sort_amount):
-    from src.main.bluesky.parser import getdata
-    getdata(outputfile, scenefile, sort_amount)
+def makescene(outputfile, scenefile, sort_amount, diramount):
+
+    getdata(outputfile, scenefile, sort_amount, diramount)
 
 
 def runall():
