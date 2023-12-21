@@ -1,5 +1,6 @@
 import pandas as pd
 
+
 def search(regex: str, df, case=False):
     """Search all the text columns of `df`, return rows with any matches."""
     textlikes = df.select_dtypes(include=[object, "string"])
@@ -8,6 +9,7 @@ def search(regex: str, df, case=False):
             lambda column: column.str.contains(regex, regex=True, case=case)
         ).any(axis=1)
     ]
+
 
 def sort(df, sortby: str, order: str):
     df.fillna(value=pd.NA, inplace=True)
@@ -21,6 +23,7 @@ def sort(df, sortby: str, order: str):
         df = df.sort_values(by="FLIGHT_ID")
     return df
 
+
 def delete(deleteafter, deleterow, completefile):
     df = pd.read_csv(completefile)
 
@@ -28,6 +31,7 @@ def delete(deleteafter, deleterow, completefile):
     res = res[~(res['FLIGHT_ID'] == deleterow)]  # Exclude rows with FLIGHT_ID equal to deleterow
     # Save the modified DataFrame to CSV
     res.to_csv(completefile, index=False)
+
 
 def paginate_dataframe(page_size, page_number, completefile, stored_search_filter, sortby, order, new_search_filter=None):
     # Check if the specified column exists in the DataFrame
@@ -64,13 +68,15 @@ def editdata(completefile, updated_data):
     for index, row in df.iterrows():
         if str(row['FLIGHT_ID']) == updated_data['FLIGHT_ID']:
             # Update the DataFrame with the new data
+            df.at[index, 'CALLSIGN'] = updated_data.get('Callsign', row['CALLSIGN'])
             df.at[index, 'OPERATOR'] = updated_data.get('Operator', row['OPERATOR'])
             df.at[index, 'ICAO_ACTYPE'] = updated_data.get('ICAOType', row['ICAO_ACTYPE'])
             df.at[index, 'ADEP'] = updated_data.get('ADEP', row['ADEP'])
             df.at[index, 'DEST'] = updated_data.get('DEST', row['DEST'])
+            df.at[index, 'FLIGHT_RULES'] = updated_data.get('FLIGHT_RULES', row['FLIGHT_RULES'])
             df.at[index, 'TAS'] = float(updated_data.get('TAS', row['TAS']))
             df.at[index, 'RFL'] = float(updated_data.get('RFL', row['RFL']))
-            df.at[index, 'WTC'] = updated_data.get('Weightclass', row['WTC'])
+            df.at[index, 'WTC'] = updated_data.get('WeightClass', row['WTC'])
             df.at[index, 'RUNWAY'] = updated_data.get('RUNWAY', row['RUNWAY'])
             df.at[index, 'GATE'] = updated_data.get('GATE', row['GATE'])
             df.at[index, 'STACK'] = updated_data.get('STACK', row['STACK'])
