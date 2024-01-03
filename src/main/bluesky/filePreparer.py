@@ -6,7 +6,7 @@ def filepreparer(filename, landingsfile):
     landings = pd.read_csv(landingsfile, sep=None, engine="python")
 
     # Specify the columns you want to delete
-    columns_to_delete = ['STATUS', 'T_UPDATE', 'T0', 'SFPL_ID', 'REGISTRATION', "TYPE_OF_TRANSPONDER", 'CFMU_DELAY', 'CONTROL', 'FPOS_TRACK_ID', 'TIME']
+    columns_to_delete = ['STATUS', 'T_UPDATE', 'SFPL_ID', 'REGISTRATION', "TYPE_OF_TRANSPONDER", 'CFMU_DELAY', 'CONTROL', 'FPOS_TRACK_ID', 'TIME']
 
     # Remove the specified columns from 'info' DataFrame
     info = info.drop(columns=columns_to_delete, errors='ignore')

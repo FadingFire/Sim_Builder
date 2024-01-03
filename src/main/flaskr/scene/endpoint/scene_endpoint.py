@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from flask import Blueprint, current_app, request, send_file
-from src.main.bluesky.paginator import paginate_dataframe, editdata, delete
+from src.main.bluesky.paginator import paginate_dataframe, editdata, delete, addData
 from src.main.bluesky.creator import parsefiles
 # from src.main.bluesky.creator import parsefiles
 from werkzeug.utils import secure_filename
@@ -12,6 +12,16 @@ from src.main.flaskr.globals.model.response import response_with_request, text_r
 # Load the complete CSV file into a DataFrame
 
 outputfile = "src/main/bluesky/Data/complete.csv"
+
+
+@scene_endpoint.route('/change_outputfile', methods=['OPTIONS'])
+def change_outputfile():
+    global outputfile
+    if request.args.get('selfmade') == "true":
+        outputfile = "src/main/bluesky/Data/SAVE/selfmade.csv"
+    else:
+        outputfile = "src/main/bluesky/Data/complete.csv"
+    return outputfile
 
 
 @scene_endpoint.route('/upload', methods=['POST'])
@@ -147,6 +157,8 @@ def scenefile():
         "src/main/bluesky/Data/scenefile.scn",
         request.args.get('sortamount', default=50, type=int),
         request.args.get('slidervalue'),
+        request.args.get('slidervalueWTC'),
+        request.args.get('APPvalue'),
         request.args.get('scenetime')
     )
     return send_file(inputfile, as_attachment=True, mimetype='application/octet-stream')
@@ -156,6 +168,20 @@ def scenefile():
 def update_data():
     res = text_response
     editdata(
+        outputfile,
+        request.json
+    )
+    res.update({
+        "status": 200,
+        "message": "The server has seen your request"
+    })
+    return res
+
+
+@scene_endpoint.route('/add', methods=['PATCH'])
+def new_data():
+    res = text_response
+    addData(
         outputfile,
         request.json
     )

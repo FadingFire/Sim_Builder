@@ -80,7 +80,7 @@ def process_and_save_data(input_file, landings_file, output_file):
     # Iterate through the input CSV file and insert unique data into the AVL tree
     for index, row in df.iterrows():
         key = (
-            int(row["FLIGHT_ID"]), str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]), str(row["ADEP"]), str(row["DEST"]), str(row["FLIGHT_RULES"]), str(row["TAS"]), str(row["RFL"]), str(row["WTC"])
+            int(row["FLIGHT_ID"]), str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]), str(row["ADEP"]), str(row["DEST"]), str(row["FLIGHT_RULES"]), str(row["TAS"]), str(row["RFL"]), str(row["WTC"]),  str(row["T0"])
         )
         # Check if any value in the key tuple is "nan" (case-insensitive)
         if not any(is_nan_string(value) for value in key):
@@ -106,7 +106,7 @@ def process_and_save_data(input_file, landings_file, output_file):
     inorder_traversal(avl_tree, unique_data, callsigns)
 
     # Convert the combined unique data into a DataFrame
-    combined_df = pd.DataFrame(unique_data, columns=["FLIGHT_ID", "CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "FLIGHT_RULES", "TAS", "RFL", "WTC"])
+    combined_df = pd.DataFrame(unique_data, columns=["FLIGHT_ID", "CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "FLIGHT_RULES", "TAS", "RFL", "WTC", "T0"])
 
     # Add the Date_Added column with the current date
     combined_df["Date_Added"] = datetime.now().strftime("%Y-%m-%d")

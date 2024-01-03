@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date, datetime
 
 
 def search(regex: str, df, case=False):
@@ -13,7 +14,6 @@ def search(regex: str, df, case=False):
 
 def sort(df, sortby: str, order: str):
     df.fillna(value=pd.NA, inplace=True)
-
     if sortby in df.columns:
         if order == "asc":
             df = df.sort_values(by=sortby)
@@ -81,3 +81,41 @@ def editdata(completefile, updated_data):
             df.at[index, 'GATE'] = updated_data.get('GATE', row['GATE'])
             df.at[index, 'STACK'] = updated_data.get('STACK', row['STACK'])
             df.to_csv(completefile, index=False)
+
+
+def addData(completefile, updated_data):
+    idlength = 0
+    firsttime = False
+    try:
+        idlength = pd.read_csv("src/main/bluesky/Data/SAVE/selfmade.csv").shape[0]
+    except ValueError:
+        pass
+    df = pd.read_csv(completefile)
+
+    df2 = pd.DataFrame({
+        'FLIGHT_ID': [idlength],
+        'CALLSIGN': [updated_data.get('Callsign')],
+        'OPERATOR': [updated_data.get('Operator')],
+        'ICAO_ACTYPE': [updated_data.get('ICAOType')],
+        'ADEP': [updated_data.get('ADEP')],
+        'DEST': [updated_data.get('DEST')],
+        'FLIGHT_RULES': [updated_data.get('FLIGHT_RULES')],
+        'TAS': [updated_data.get('TAS')],
+        'RFL': [updated_data.get('RFL')],
+        'WTC': [updated_data.get('WeightClass')],
+        'T0': [datetime.now().strftime("%#d-%#m-%Y %H:%M:%S")],
+        'Date_Added': [date.today()],
+        'RUNWAY': [updated_data.get('RunWay')],
+        'GATE': [updated_data.get('GATE')],
+        'STACK': [updated_data.get('STACK')]
+    })
+    with open("src/main/bluesky/Data/SAVE/selfmade.csv", 'a') as df1:
+        try:
+            pd.read_csv("src/main/bluesky/Data/SAVE/selfmade.csv")
+        except ValueError:
+            df1.write(df2.to_csv(index=False))
+            firsttime = True
+        if not firsttime:
+            df1.write(df2.to_csv(index=False, header=False))
+    df = pd.concat([df, df2], ignore_index=True)
+    df.to_csv(completefile, index=False)

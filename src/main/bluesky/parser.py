@@ -70,23 +70,25 @@ def write_scene_file(filename, combined_df, total_time):
             Nederland = get_dutch_airports()
             if row['ADEP'] in Nederland:
                 scenetext = (
-                    f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
-                    f"FL{flight_altitude} {row['TAS']}\n"
-                    f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                    f"{time_stamp}>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
+                    # f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
+                    # f"FL{flight_altitude} {row['TAS']}\n"
+                    # f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                    # f"{time_stamp}>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
+                    f"OUTBOUND {row['WTC']}\n"
                 )
             elif pd.notna(stack):
                 scenetext = (
-                    f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
-                    f"FL{flight_altitude} {row['TAS']}\n"
-                    f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                    f"{time_stamp}>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
+                    # f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
+                    # f"FL{flight_altitude} {row['TAS']}\n"
+                    # f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                    # f"{time_stamp}>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
+                    f"INBOUND {row['WTC']}\n"
                 )
 
             file.write(scenetext)
 
 
-def getdata(input_file, output_file, sort_amount, diramount, total_time):
+def getdata(input_file, output_file, sort_amount, diramount, wtc_amount, app_value, total_time):
     combined_df = pd.read_csv(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
 
@@ -103,25 +105,47 @@ def getdata(input_file, output_file, sort_amount, diramount, total_time):
 
     Nederland = get_dutch_airports()
 
-    percRiver, percArtip, percSugol, percEHAM = diramount.split(sep=",")
+    percRiver, percArtip, percSugol = diramount.split(sep=",")
+    percSTACK, percEHAM = app_value.split(sep=",")
+    wtc_percentages = wtc_amount.split(sep=",")
+    wtc_labels = ["L", "M", "H", "J"]
+    stacksort_amount = sort_amount * int(percSTACK) / 100
+    print(stacksort_amount, flush=True)
+
     for stack, perc in [("RIVER", percRiver), ("ARTIP", percArtip), ("SUGOL", percSugol)]:
-        stack_amount = sort_amount * int(perc) / 100
+        stack_amount = stacksort_amount * float(perc) / 100
         if stack_amount > 0:
-            stack_df = combined_df[(combined_df["STACK"] == stack) &
-                                   pd.notna(combined_df["DEST_LATITUDE"]) &
-                                   pd.notna(combined_df["DEST_LONGITUDE"])].sample(n=int(stack_amount))
-            selected_rows_list.append(stack_df)
+            for wtc, percwtc in zip(wtc_labels, wtc_percentages):
+                stack_amount = math.ceil(stack_amount)
+                wtc_amount = stack_amount * float(percwtc) / 100
+                if wtc_amount > 0:
+                    filtered_df = combined_df[(combined_df["WTC"] == wtc) &
+                                              (combined_df["STACK"] == stack) &
+                                              pd.notna(combined_df["DEST_LATITUDE"]) &
+                                              pd.notna(combined_df["DEST_LONGITUDE"])]
+                    if len(filtered_df) > 0:
+                        wtc_df = filtered_df.sample(frac=wtc_amount / len(filtered_df))
+                        selected_rows_list.append(wtc_df)
+                    else:
+                        print(f"Not enough rows to sample for WTC {wtc}")
 
-    EHAM_amount = sort_amount * int(percEHAM) / 100
+    EHAM_amount = sort_amount * float(percEHAM) / 100
     if EHAM_amount > 0:
-        EHAM_df = combined_df[(combined_df["ADEP"] == "EHAM") &
-                              pd.notna(combined_df["DEST_LATITUDE"]) &
-                              pd.notna(combined_df["DEST_LONGITUDE"])].sample(n=int(EHAM_amount))
-        selected_rows_list.append(EHAM_df)
-
+        for wtc, percwtc in zip(wtc_labels, wtc_percentages):
+            wtc_amount = EHAM_amount * float(percwtc) / 100
+            wtc_amount = math.ceil(wtc_amount)
+            if wtc_amount > 0:
+                filtered_df = combined_df[(combined_df["WTC"] == wtc) &
+                                          (combined_df["ADEP"] == "EHAM") &
+                                          pd.notna(combined_df["DEST_LATITUDE"]) &
+                                          pd.notna(combined_df["DEST_LONGITUDE"])]
+                if len(filtered_df) > 0:
+                    wtc_df = filtered_df.sample(frac=wtc_amount / len(filtered_df))
+                    selected_rows_list.append(wtc_df)
+                else:
+                    print(f"Not enough rows to sample for WTC {wtc}")
     selected_rows = pd.concat(selected_rows_list).head(sort_amount)
     selected_rows = selected_rows.sample(frac=1)
 
     # run write function with correct files
     write_scene_file(output_file, selected_rows, total_time)
-
