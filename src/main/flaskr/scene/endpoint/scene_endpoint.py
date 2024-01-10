@@ -9,7 +9,6 @@ from src.main.bluesky.parser import getdata
 
 scene_endpoint = Blueprint('scene_endpoint', __name__)
 from src.main.flaskr.globals.model.response import response_with_request, text_response, paginated_response
-# Load the complete CSV file into a DataFrame
 
 outputfile = "src/main/bluesky/Data/complete.csv"
 
@@ -27,7 +26,6 @@ def change_outputfile():
 @scene_endpoint.route('/upload', methods=['POST'])
 def upload_file():
     res = text_response
-    print(request.files)
 
     if 'Flights' not in request.files:
         res.update({

@@ -14,15 +14,3 @@ def airlineslist(outputfile):
     allproviders = combined_df["OPERATOR"]
     providers = allproviders.drop_duplicates(keep="first").astype(str).to_list()
     return providers
-
-
-def makescene(outputfile, scenefile, sort_amount, diramount):
-
-    getdata(outputfile, scenefile, sort_amount, diramount)
-
-
-def runall():
-    parsefiles()
-    airlineslist()
-    makescene()
-
