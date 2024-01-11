@@ -4,7 +4,7 @@ import math
 
 
 # Read the airport data and store it in a global variable
-airport_data = pd.read_csv("Data/airports.csv")
+airport_data = pd.read_csv("src/main/bluesky/Data/airports.csv")
 airport_info_dict = airport_data.set_index("# code")[["lat", "lon"]].to_dict(orient="index")
 
 
@@ -37,14 +37,24 @@ def calculate_bearing(lat1, lon1, lat2, lon2):
     return round(0 if np.isnan(bearing) else bearing, 2)
 
 
-def write_scene_file(filename, combined_df):
+def write_scene_file(filename, combined_df, total_time):
     with open(filename, 'w') as file:
+        current_time = 0
+        time_step = int(total_time) / len(combined_df)
+
         for index, row in combined_df.iterrows():
             scenetext = ""
             lat, lon = get_airport_info(row["DEST"], "lat"), get_airport_info(row["DEST"], "lon")
             ehamLat, ehamLon = 52.309, 4.764
             stack = row.get("STACK", None)
-            # check if stack is not empty and set stack and brng
+
+            # Calculate time stamp
+            current_time += time_step
+            hours = int(current_time // 3600)
+            minutes = int((current_time % 3600) // 60)
+            seconds = current_time % 60
+            time_stamp = f"{hours:02d}:{minutes:02d}:{seconds:.2f}"
+
             if lat is not None and lon is not None and stack in ["RIVER", "SUGOL", "ARTIP"]:
                 lat, lon = {
                     "RIVER": (51.912, 4.132),
@@ -52,38 +62,35 @@ def write_scene_file(filename, combined_df):
                     "ARTIP": (52.511, 5.569)
                 }.get(stack, (lat, lon))
                 brng = calculate_bearing(lat, lon, ehamLat, ehamLon)
-                # else brng is calculated from origin
             else:
                 brng = calculate_bearing(ehamLat, ehamLon, lat, lon)
+
             flight_altitude = int(float(row["RFL"]))
-            # if origin is Netherlands, set the origin as origin and delete at a distance of 30
-            Nederland = get_dutch_airports()
-            if row['ADEP'] in Nederland:
+
+            Netherlands = get_dutch_airports()
+            if row['ADEP'] in Netherlands:
                 scenetext = (
-                    f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
+                    f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
                     f"FL{flight_altitude} {row['TAS']}\n"
-                    f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                    f"00:00:00.00>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
+                    f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                    f"{time_stamp}>{row['CALLSIGN']} ATDIST {row['ADEP']} 30 DEL {row['CALLSIGN']}\n"
                 )
-            # else if stack is not empty set origin as the correct stack and delete at Destination
             elif pd.notna(stack):
                 scenetext = (
-                    f"00:00:00.00>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
+                    f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {stack} {brng} "
                     f"FL{flight_altitude} {row['TAS']}\n"
-                    f"00:00:00.00>DEST {row['CALLSIGN']} {row['DEST']}\n"
-                    f"00:00:00.00>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
+                    f"{time_stamp}>DEST {row['CALLSIGN']} {row['DEST']}\n"
+                    f"{time_stamp}>{row['CALLSIGN']} AT {row['DEST']} DO DEL {row['CALLSIGN']}\n"
                 )
-            # write to the scenefile
+
             file.write(scenetext)
 
 
-def getdata(input_file, output_file, sort_amount):
-    # read the complete Csv file and drop all duplicate Callsigns
+def getdata(input_file, output_file, sort_amount, diramount, wtc_amount, app_value, total_time):
     combined_df = pd.read_csv(input_file)
     combined_df.drop_duplicates(subset="CALLSIGN", keep="first", inplace=True)
 
     def get_dest_lat_lon(dest):
-        # get the lat and lon of the destinations from the dictionary
         airport_info = airport_info_dict.get(dest)
         if airport_info:
             return airport_info.get("lat", None), airport_info.get("lon", None)
@@ -91,23 +98,49 @@ def getdata(input_file, output_file, sort_amount):
             return None, None
 
     combined_df["DEST_LATITUDE"], combined_df["DEST_LONGITUDE"] = zip(*combined_df["DEST"].map(get_dest_lat_lon))
+    selected_rows_list = []
+    weights = {
+        'L': [],
+        'M': [],
+        'H': [],
+        'J': [],
+    }
+    Netherlands = get_dutch_airports()
 
-    # Create an empty DataFrame to store the selected rows
-    selected_rows = pd.DataFrame(columns=combined_df.columns)
-    Nederland = get_dutch_airports()
+    percRiver, percArtip, percSugol = diramount.split(sep=",")
+    percSTACK, percEHAM = app_value.split(sep=",")
+    wtc_percentages = wtc_amount.split(sep=",")
+    wtc_labels = ["L", "M", "H", "J"]
+    stacksort_amount = sort_amount * int(percSTACK) / 100
+    for wtc, percwtc in zip(wtc_labels, wtc_percentages):
+        if percwtc <= "0":
+            percwtc = "1"
+        weights[wtc].append(percwtc)
+    combined_df['weightswtc'] = combined_df['WTC'].apply(lambda x: weights[x])
+    combined_df['weightswtc'] = combined_df['weightswtc'].apply(lambda x: int(x[0]) if isinstance(x, list) and len(x) > 0 else x)
 
+    for stack, perc in [("RIVER", percRiver), ("ARTIP", percArtip), ("SUGOL", percSugol)]:
+        stack_amount = stacksort_amount * float(perc) / 100
+        if stack_amount > 0:
+            stack_amount = math.ceil(stack_amount)
+            filtered_df = combined_df[(combined_df["STACK"] == stack) &
+                                      pd.notna(combined_df["DEST_LATITUDE"]) &
+                                      pd.notna(combined_df["DEST_LONGITUDE"])]
+            if len(filtered_df) > 0:
+                wtc_df = filtered_df.sample(n=int(stack_amount), weights='weightswtc')
+                selected_rows_list.append(wtc_df)
 
-    while len(selected_rows) < sort_amount:
-        # Get a random sample of rows from the DataFrame
-        random_sample = combined_df.sample(n=sort_amount - len(selected_rows))
+    EHAM_amount = sort_amount * float(percEHAM) / 100
+    if EHAM_amount > 0:
+        filtered_df = combined_df[(combined_df["ADEP"] == "EHAM") &
+                                  pd.notna(combined_df["DEST_LATITUDE"]) &
+                                  pd.notna(combined_df["DEST_LONGITUDE"])]
 
-        # Loop through the random sample and select rows that meet the criteria
-        for index, row in random_sample.iterrows():
-            if pd.notna(row["DEST_LATITUDE"]) and pd.notna(row["DEST_LONGITUDE"]) and (row["ADEP"] in Nederland or pd.notna(row["STACK"])):
-                selected_rows = pd.concat([selected_rows, pd.DataFrame(row).T])
+        wtc_df = filtered_df.sample(n=int(EHAM_amount), weights='weightswtc')
+        selected_rows_list.append(wtc_df)
 
-    # Trim excess rows if more than sort_amount were selected
-    selected_rows = selected_rows.head(sort_amount)
+    selected_rows = pd.concat(selected_rows_list).head(sort_amount)
+    selected_rows = selected_rows.sample(frac=1)
 
     # run write function with correct files
-    write_scene_file(output_file, selected_rows)
+    write_scene_file(output_file, selected_rows, total_time)

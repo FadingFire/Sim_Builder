@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import datetime
 
 
 class AVLNode:
@@ -79,7 +80,7 @@ def process_and_save_data(input_file, landings_file, output_file):
     # Iterate through the input CSV file and insert unique data into the AVL tree
     for index, row in df.iterrows():
         key = (
-            str(row["FLIGHT_ID"]), str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]), str(row["ADEP"]), str(row["DEST"]), str(row["TAS"]), str(row["RFL"]), str(row["TYPE_OF_TRANSPONDER"])
+            int(row["FLIGHT_ID"]), str(row["CALLSIGN"]), str(row["OPERATOR"]), str(row["ICAO_ACTYPE"]), str(row["ADEP"]), str(row["DEST"]), str(row["FLIGHT_RULES"]), str(row["TAS"]), str(row["RFL"]), str(row["WTC"]),  str(row["T0"])
         )
         # Check if any value in the key tuple is "nan" (case-insensitive)
         if not any(is_nan_string(value) for value in key):
@@ -105,14 +106,17 @@ def process_and_save_data(input_file, landings_file, output_file):
     inorder_traversal(avl_tree, unique_data, callsigns)
 
     # Convert the combined unique data into a DataFrame
-    combined_df = pd.DataFrame(unique_data, columns=["FLIGHT_ID", "CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "TAS", "RFL", "TYPE_OF_TRANSPONDER"])
+    combined_df = pd.DataFrame(unique_data, columns=["FLIGHT_ID", "CALLSIGN", "OPERATOR", "ICAO_ACTYPE", "ADEP", "DEST", "FLIGHT_RULES", "TAS", "RFL", "WTC", "T0"])
+
+    # Add the Date_Added column with the current date
+    combined_df["Date_Added"] = datetime.now().strftime("%Y-%m-%d")
 
     # Load additional data from the "AdditionalData.csv" file
     additional_data_df = pd.read_csv(landings_file)
 
     # Ensure both data frames have the "FLIGHT_ID" column as objects (strings)
-    combined_df["FLIGHT_ID"] = combined_df["FLIGHT_ID"].astype(str)
-    additional_data_df["FLIGHT_ID"] = additional_data_df["FLIGHT_ID"].astype(str)
+    combined_df["FLIGHT_ID"] = combined_df["FLIGHT_ID"].astype(int)
+    additional_data_df["FLIGHT_ID"] = additional_data_df["FLIGHT_ID"].astype(int)
 
     # Merge the additional data based on the FLIGHT_ID column
     combined_df = pd.merge(combined_df, additional_data_df, on="FLIGHT_ID", how="left")
@@ -120,10 +124,12 @@ def process_and_save_data(input_file, landings_file, output_file):
     # Append the new data to the existing "complete.csv" file or create a new one if it doesn't exist
     try:
         existing_df = pd.read_csv(output_file)
-        combined_df = pd.concat([existing_df, combined_df]).drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE", "STACK"], keep="first")
+        combined_df = pd.concat([existing_df, combined_df])
     except FileNotFoundError:
         pass
 
     # Save the combined data to "complete.csv"
+    combined_df = combined_df.drop_duplicates(subset=["CALLSIGN", "ICAO_ACTYPE", "STACK"], keep='last')
+    combined_df = combined_df.sort_values(by="FLIGHT_ID")
     combined_df.to_csv(output_file, index=False)
     return output_file
