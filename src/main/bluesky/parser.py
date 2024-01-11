@@ -67,8 +67,8 @@ def write_scene_file(filename, combined_df, total_time):
 
             flight_altitude = int(float(row["RFL"]))
 
-            Nederland = get_dutch_airports()
-            if row['ADEP'] in Nederland:
+            Netherlands = get_dutch_airports()
+            if row['ADEP'] in Netherlands:
                 scenetext = (
                     f"{time_stamp}>CRE {row['CALLSIGN']} {row['ICAO_ACTYPE']} {row['ADEP']} {brng} "
                     f"FL{flight_altitude} {row['TAS']}\n"
@@ -105,7 +105,7 @@ def getdata(input_file, output_file, sort_amount, diramount, wtc_amount, app_val
         'H': [],
         'J': [],
     }
-    Nederland = get_dutch_airports()
+    Netherlands = get_dutch_airports()
 
     percRiver, percArtip, percSugol = diramount.split(sep=",")
     percSTACK, percEHAM = app_value.split(sep=",")
