@@ -1,2 +1,2 @@
-# Bluesky-database-plugin
-for my internship at the LVNL i am making a plugin for Bluesky that adds a easily editable database with a frontend
+# Bluesky-Flight-database
+for my internship at the LVNL i am making a Database for Bluesky that also has a tool to make scene files, connected with a frontend
