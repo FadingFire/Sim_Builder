@@ -12,6 +12,12 @@ def search(regex: str, df, case=False):
     ]
 
 
+def airlines(completefile):
+    df = pd.read_csv(completefile)
+    provider = df["OPERATOR"].drop_duplicates(keep="first").tolist()
+    return provider
+
+
 def sort(df, sortby: str, order: str):
     df.fillna(value=pd.NA, inplace=True)
     if sortby in df.columns:
@@ -24,11 +30,14 @@ def sort(df, sortby: str, order: str):
     return df
 
 
-def delete(deleteafter, deleterow, completefile):
+def delete(deletebefore, deleterow, deleteprovider, completefile):
     df = pd.read_csv(completefile)
 
-    res = df[~(df['Date_Added'] < deleteafter)]
+    res = df[~(df['Date_Added'] < deletebefore)]
     res = res[~(res['FLIGHT_ID'] == deleterow)]  # Exclude rows with FLIGHT_ID equal to deleterow
+    print(deleteprovider, flush=True)
+    if deleteprovider:
+        res = res[~(res['OPERATOR'] == deleteprovider)]  # Exclude rows with FLIGHT_ID equal to deleterow
     # Save the modified DataFrame to CSV
     res.to_csv(completefile, index=False)
 

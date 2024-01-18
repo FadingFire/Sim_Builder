@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from flask import Blueprint, current_app, request, send_file
-from src.main.bluesky.paginator import paginate_dataframe, editdata, delete, addData
+from src.main.bluesky.paginator import paginate_dataframe, editdata, delete, addData, airlines
 from src.main.bluesky.creator import parsefiles
 # from src.main.bluesky.creator import parsefiles
 from werkzeug.utils import secure_filename
@@ -121,7 +121,9 @@ def paginated_file():
         sort_by,
         order
     )
+    providers = airlines(outputfile)
 
+    res["providers"] = providers
     res["data"] = paginated_data
     res["pagenumber"] = row_count
 
@@ -138,6 +140,7 @@ def deleterow():
     delete(
         request.args.get('DeleteOlder', default="01-01-2000", type=str),
         request.args.get('Deleterow', default=0, type=float),
+        request.args.get('Deleteprovider', default=None, type=str),
         outputfile
     )
     res.update({
