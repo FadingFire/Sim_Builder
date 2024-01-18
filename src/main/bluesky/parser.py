@@ -49,11 +49,11 @@ def write_scene_file(filename, combined_df, total_time):
             stack = row.get("STACK", None)
 
             # Calculate time stamp
-            current_time += time_step
+            current_time += time_step * 60
             hours = int(current_time // 3600)
             minutes = int((current_time % 3600) // 60)
             seconds = current_time % 60
-            time_stamp = f"{hours:02d}:{minutes:02d}:{seconds:.2f}"
+            time_stamp = f"{hours:02d}:{minutes:02d}:{round(seconds):02d}:00"
 
             if lat is not None and lon is not None and stack in ["RIVER", "SUGOL", "ARTIP"]:
                 lat, lon = {
